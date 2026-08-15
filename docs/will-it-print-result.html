@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Will It Print? — Result</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#17161A;
+    --paper:#F4F3EE;          /* press bed */
+    --sheet:#FFFFFF;          /* a sheet on the bed */
+    --graphite:#6B6A64;
+    --hair:#E3E1DA;
+    --cyan:#00A0C6;           /* registration / focus only */
+
+    --yes:#1E7A4D;
+    --almost:#B0761A;
+    --maybe:#2C6DA6;
+    --no:#C33C33;
+
+    --r:14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:"IBM Plex Sans",system-ui,sans-serif;
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+    padding:32px 20px 80px;
+  }
+  .wrap{max-width:640px;margin:0 auto;}
+
+  /* ---------- job ticket header ---------- */
+  .ticket{
+    display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 14px;
+    font-family:"IBM Plex Mono",monospace;font-size:12.5px;color:var(--graphite);
+    padding-bottom:14px;margin-bottom:22px;border-bottom:1px solid var(--hair);
+    text-transform:uppercase;letter-spacing:.04em;
+  }
+  .ticket .file{color:var(--ink);font-weight:500;text-transform:none;letter-spacing:0;font-size:13px;}
+  .ticket .chip{padding:2px 7px;border:1px solid var(--hair);border-radius:100px;background:var(--sheet);}
+
+  /* ---------- verdict stamp ---------- */
+  .frame{position:relative;margin:6px 0 30px;}
+  .cmark{position:absolute;width:16px;height:16px;pointer-events:none;color:var(--ink);}
+  .cmark::before,.cmark::after{content:"";position:absolute;background:currentColor;}
+  .cmark::before{width:1.5px;height:16px;}
+  .cmark::after{height:1.5px;width:16px;}
+  .cmark.tl{top:-9px;left:-9px;} .cmark.tr{top:-9px;right:-9px;}
+  .cmark.bl{bottom:-9px;left:-9px;} .cmark.br{bottom:-9px;right:-9px;}
+  .cmark.tr::before,.cmark.br::before{right:0;} .cmark.bl::after,.cmark.br::after{bottom:0;}
+  .cmark.tr::after,.cmark.br::after{right:0;} .cmark.bl::before,.cmark.br::before{}
+
+  .stamp{
+    position:relative;background:var(--sheet);
+    border:1px solid var(--hair);border-radius:var(--r);
+    padding:28px 28px 24px;
+    box-shadow:0 1px 0 rgba(0,0,0,.02);
+    overflow:hidden;
+  }
+  .stamp::before{ /* verdict ink wash down the left edge */
+    content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--tone);
+  }
+  .eyebrow{
+    font-family:"IBM Plex Mono",monospace;font-size:11.5px;letter-spacing:.16em;
+    text-transform:uppercase;color:var(--graphite);margin:0 0 12px;
+  }
+  .eyebrow b{color:var(--tone);}
+  .verdict{
+    font-family:"Space Grotesk",sans-serif;font-weight:700;
+    font-size:clamp(30px,7vw,44px);line-height:1.02;letter-spacing:-.02em;
+    color:var(--tone);margin:0;
+  }
+  .trimline{border:0;border-top:1.5px dashed var(--tone);opacity:.5;margin:16px 0;}
+  .subline{margin:0 0 20px;color:var(--ink);font-size:15.5px;max-width:46ch;}
+  .actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center;}
+
+  .btn{
+    font-family:"IBM Plex Sans",sans-serif;font-size:14px;font-weight:600;
+    padding:11px 18px;border-radius:10px;border:1px solid transparent;cursor:pointer;
+  }
+  .btn.solid{background:var(--ink);color:#fff;}
+  .btn.solid:hover{background:#000;}
+  .btn.ghost{background:transparent;color:var(--ink);border-color:var(--ink);}
+  .btn.ghost:hover{background:rgba(0,0,0,.04);}
+  .btn.small{padding:8px 13px;font-size:13px;}
+  .count{font-family:"IBM Plex Mono",monospace;font-size:12.5px;color:var(--graphite);}
+
+  /* ---------- findings ---------- */
+  .sec{font-family:"IBM Plex Mono",monospace;font-size:11.5px;letter-spacing:.16em;
+    text-transform:uppercase;color:var(--graphite);margin:0 2px 10px;}
+  .cards{display:flex;flex-direction:column;gap:10px;}
+  .card{background:var(--sheet);border:1px solid var(--hair);border-radius:12px;overflow:hidden;}
+  .head{
+    display:flex;align-items:center;gap:13px;width:100%;
+    background:none;border:0;cursor:pointer;text-align:left;
+    padding:15px 16px;font:inherit;color:inherit;
+  }
+  .reg{flex:0 0 auto;color:var(--st);display:grid;place-items:center;}
+  .msg{flex:1 1 auto;font-size:15px;}
+  .tag{
+    font-family:"IBM Plex Mono",monospace;font-size:10.5px;font-weight:500;
+    letter-spacing:.08em;text-transform:uppercase;color:var(--st);
+    border:1px solid color-mix(in srgb,var(--st) 40%,var(--hair));
+    background:color-mix(in srgb,var(--st) 8%,#fff);
+    padding:2px 7px;border-radius:100px;flex:0 0 auto;
+  }
+  .chev{flex:0 0 auto;color:var(--graphite);transition:transform .18s ease;}
+  .card.open .chev{transform:rotate(90deg);}
+
+  .body{max-height:0;overflow:hidden;transition:max-height .22s ease;}
+  .card.open .body{max-height:340px;}
+  .body-in{padding:0 16px 16px 45px;}
+  .why{margin:0 0 12px;color:var(--ink);font-size:14px;}
+  .data{
+    font-family:"IBM Plex Mono",monospace;font-size:12.5px;color:var(--ink);
+    background:color-mix(in srgb,var(--st) 6%,#fff);
+    border:1px solid color-mix(in srgb,var(--st) 22%,var(--hair));
+    border-radius:8px;padding:8px 11px;margin:0 0 13px;white-space:pre-wrap;
+  }
+  .act{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;}
+  .caveat{font-size:12.5px;color:var(--graphite);max-width:44ch;}
+  .manual{font-size:13px;color:var(--ink);}
+  .manual .mtag{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.06em;
+    text-transform:uppercase;color:var(--graphite);border:1px solid var(--hair);
+    padding:2px 6px;border-radius:100px;margin-right:8px;}
+
+  /* focus */
+  a:focus-visible,button:focus-visible{outline:2px solid var(--cyan);outline-offset:2px;}
+
+  /* ---------- prototype-only state switch ---------- */
+  .switch{position:sticky;top:0;z-index:5;display:flex;gap:6px;flex-wrap:wrap;
+    background:var(--paper);padding:0 0 18px;}
+  .switch small{font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--graphite);
+    text-transform:uppercase;letter-spacing:.1em;align-self:center;margin-right:4px;}
+  .switch button{font-family:"IBM Plex Mono",monospace;font-size:12px;padding:5px 10px;
+    border:1px solid var(--hair);background:var(--sheet);border-radius:100px;cursor:pointer;color:var(--graphite);}
+  .switch button[aria-pressed="true"]{border-color:var(--ink);color:var(--ink);background:#fff;font-weight:500;}
+
+  @media (prefers-reduced-motion:reduce){*{transition:none !important;}}
+  @media print{
+    .switch{display:none;} body{padding:0;background:#fff;}
+    .card{break-inside:avoid;} .body{max-height:none !important;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="switch" role="group" aria-label="Preview verdict state (prototype)">
+    <small>Preview</small>
+    <button data-s="ready">Yes</button>
+    <button data-s="fixable">Almost</button>
+    <button data-s="unverified">Maybe</button>
+    <button data-s="needs">Not yet</button>
+  </div>
+
+  <div class="ticket" id="ticket"></div>
+
+  <div class="frame">
+    <span class="cmark tl"></span><span class="cmark tr"></span>
+    <span class="cmark bl"></span><span class="cmark br"></span>
+    <div class="stamp" id="stamp"></div>
+  </div>
+
+  <p class="sec">The checks</p>
+  <div class="cards" id="cards"></div>
+
+</div>
+
+<script>
+const TONE = { ready:'var(--yes)', fixable:'var(--almost)', unverified:'var(--maybe)', needs:'var(--no)' };
+const ST   = { pass:'var(--yes)', warn:'var(--almost)', unverified:'var(--maybe)', fail:'var(--no)' };
+const TAG  = { pass:'OK', warn:'Fixable', unverified:"Couldn't check", fail:'Blocker' };
+
+// registration-mark status glyph
+function reg(status){
+  return `<span class="reg" style="--st:${ST[status]}"><svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+    <circle cx="9" cy="9" r="6.2" stroke="currentColor" stroke-width="1.4"/>
+    <circle cx="9" cy="9" r="1.6" fill="currentColor"/>
+    <path d="M9 0v3M9 15v3M0 9h3M15 9h3" stroke="currentColor" stroke-width="1.2"/></svg></span>`;
+}
+
+const JOB = { file:'frontcard.pdf', size:'3.5 × 2 in', method:'Offset', qty:'× 100' };
+
+const STATES = {
+  ready:{
+    eyebrow:'Proof · <b>will it print?</b>',
+    verdict:"Yes — this'll print.",
+    sub:'Everything checks out for offset. Your print-ready file is good to go.',
+    primary:{label:'Download print-ready file', kind:'solid'},
+    findings:[
+      {check:'Size', status:'pass', msg:'The finished size matches what you ordered.', why:'Trim and ordered size line up.', data:'Trim 88.9 × 50.8 mm  =  ordered 88.9 × 50.8 mm'},
+      {check:'Bleed', status:'pass', msg:'The design runs past the cut on every side.', why:'There\u2019s enough overrun to survive trimming.', data:'3.2 mm on all sides  (3.2 mm required)'},
+      {check:'Resolution', status:'pass', msg:'Sharp enough to print crisp.', why:'Pixels-per-inch at the printed size clears the minimum.', data:'300 dpi at print size  (200 dpi minimum)'},
+      {check:'Color', status:'pass', msg:'Print-ready colors.', why:'Already in the press color space.', data:'CMYK \u2014 correct for offset'},
+    ],
+  },
+  fixable:{
+    eyebrow:'Proof · <b>will it print?</b>',
+    verdict:'Almost. A couple of fixes.',
+    sub:'Two things stand between you and print-ready \u2014 both we can fix for you.',
+    primary:{label:'Fix everything I can', kind:'solid', count:'2 fixes'},
+    findings:[
+      {check:'Size', status:'pass', msg:'The finished size matches what you ordered.', why:'Trim and ordered size line up.', data:'Trim 88.9 × 50.8 mm  =  ordered 88.9 × 50.8 mm'},
+      {check:'Bleed', status:'fail', msg:'The design needs to run a little past the cut edge.', why:'Without bleed, a thin white sliver can show at the trim if the cut drifts.', data:'1.4 mm on the tightest side  (3.2 mm required)', fix:{label:'Add bleed', caveat:'Adds the space \u2014 pull your artwork out to fill it.'}},
+      {check:'Resolution', status:'pass', msg:'Sharp enough to print crisp.', why:'Clears the minimum at print size.', data:'300 dpi at print size  (200 dpi minimum)'},
+      {check:'Color', status:'fail', msg:'Some screen colors will shift when printed.', why:'This press prints in CMYK. Left as RGB it gets converted for you, and bright blues and greens move most.', data:'RGB  \u2192  needs CMYK', fix:{label:'Convert to CMYK', caveat:'A preview \u2014 confirm critical colors on your printer\u2019s proof.'}},
+    ],
+  },
+  unverified:{
+    eyebrow:'Proof · <b>will it print?</b>',
+    verdict:'Maybe. One thing we couldn\u2019t check.',
+    sub:'Nothing failed \u2014 but a flat image doesn\u2019t tell us about bleed, so we can\u2019t fully clear it.',
+    primary:{label:'Review what we couldn\u2019t check', kind:'ghost'},
+    findings:[
+      {check:'Size', status:'pass', msg:'Right shape for this size.', why:'Pixel proportions match the ordered proportions.', data:'Aspect 1.75  =  ordered 1.75'},
+      {check:'Bleed', status:'unverified', msg:'We couldn\u2019t check bleed on this file.', why:'Flat images don\u2019t carry bleed information the way a print PDF does.', data:'No bleed data in a raster file', manual:'Add bleed in your design app, or tell us if it\u2019s already included.'},
+      {check:'Resolution', status:'pass', msg:'Sharp enough to print crisp.', why:'Measured at the size you\u2019re printing.', data:'300 dpi at print size  (200 dpi minimum)'},
+      {check:'Color', status:'pass', msg:'Print-ready colors.', why:'Already in the press color space.', data:'CMYK \u2014 correct for offset'},
+    ],
+  },
+  needs:{
+    eyebrow:'Proof · <b>will it print?</b>',
+    verdict:'Not yet. This needs a change.',
+    sub:'A couple of things can\u2019t be fixed automatically \u2014 they need a change to your file first.',
+    primary:{label:'See what needs changing', kind:'ghost'},
+    findings:[
+      {check:'Size', status:'fail', msg:'This file is the wrong shape for the size you ordered.', why:'It can\u2019t be resized to fit without cropping or stretching the design \u2014 a call only you can make.', data:'1.00 ratio  vs  1.75 target', manual:'Rebuild at 88.9 × 50.8 mm, or pick a size that matches the file.'},
+      {check:'Bleed', status:'pass', msg:'The design runs past the cut on every side.', why:'Enough overrun to survive trimming.', data:'3.2 mm on all sides  (3.2 mm required)'},
+      {check:'Resolution', status:'fail', msg:'This image will look pixelated at print size.', why:'There\u2019s no honest way to add detail that isn\u2019t in the file \u2014 upscaling just invents pixels.', data:'96 dpi at print size  (200 dpi minimum)', manual:'Use a higher-resolution source, or place it smaller.'},
+      {check:'Color', status:'pass', msg:'Print-ready colors.', why:'Already in the press color space.', data:'CMYK \u2014 correct for offset'},
+    ],
+  },
+};
+
+function renderTicket(){
+  document.getElementById('ticket').innerHTML =
+    `<span class="file">${JOB.file}</span>
+     <span class="chip">${JOB.size}</span>
+     <span class="chip">${JOB.method}</span>
+     <span class="chip">${JOB.qty}</span>`;
+}
+
+function renderStamp(key){
+  const s = STATES[key];
+  const p = s.primary;
+  const btn = `<button class="btn ${p.kind==='solid'?'solid':'ghost'}">${p.label}</button>`;
+  const count = p.count ? `<span class="count">${p.count}</span>` : '';
+  const stamp = document.getElementById('stamp');
+  stamp.style.setProperty('--tone', TONE[key]);
+  stamp.innerHTML =
+    `<p class="eyebrow">${s.eyebrow}</p>
+     <h1 class="verdict">${s.verdict}</h1>
+     <hr class="trimline"/>
+     <p class="subline">${s.sub}</p>
+     <div class="actions">${btn}${count}</div>`;
+}
+
+function renderCards(key){
+  const cards = document.getElementById('cards');
+  cards.innerHTML = STATES[key].findings.map((f,i)=>{
+    let action = '';
+    if(f.fix){
+      action = `<div class="act"><button class="btn solid small">${f.fix.label}</button>
+                <span class="caveat">${f.fix.caveat}</span></div>`;
+    } else if(f.manual){
+      action = `<div class="manual"><span class="mtag">Your move</span>${f.manual}</div>`;
+    }
+    return `<div class="card" data-i="${i}">
+      <button class="head" aria-expanded="false" style="--st:${ST[f.status]}">
+        ${reg(f.status)}
+        <span class="msg">${f.msg}</span>
+        <span class="tag" style="--st:${ST[f.status]}">${TAG[f.status]}</span>
+        <svg class="chev" width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <div class="body"><div class="body-in" style="--st:${ST[f.status]}">
+        <p class="why">${f.why}</p>
+        <div class="data">${f.data}</div>
+        ${action}
+      </div></div>
+    </div>`;
+  }).join('');
+
+  cards.querySelectorAll('.head').forEach(h=>{
+    h.addEventListener('click',()=>{
+      const card = h.closest('.card');
+      const open = card.classList.toggle('open');
+      h.setAttribute('aria-expanded', open ? 'true':'false');
+    });
+  });
+}
+
+function render(key){
+  renderStamp(key); renderCards(key);
+  document.querySelectorAll('.switch button').forEach(b=>
+    b.setAttribute('aria-pressed', b.dataset.s===key ? 'true':'false'));
+}
+
+document.querySelectorAll('.switch button').forEach(b=>
+  b.addEventListener('click',()=>render(b.dataset.s)));
+
+renderTicket();
+render('fixable'); // open on the most illustrative state
+</script>
+</body>
+</html>

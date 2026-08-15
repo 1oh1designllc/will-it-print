@@ -1,0 +1,23 @@
+{
+  "name": "will-it-print",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Will It Print? — client-side print preflight. Upload artwork + specs, get a plain-language verdict.",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "node tests/harness.js && node tests/raster-harness.js && node tests/pdf-model-harness.js && node tests/present-harness.js && node tests/fix-harness.js"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "pdf-lib": "^1.17.1",
+    "pdfjs-dist": "^4.6.82"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.3.1",
+    "vite": "^5.4.0"
+  }
+}
