@@ -57,17 +57,18 @@ export const dimensionsChecker = {
         });
       }
 
-      // Rotated: dimensions swapped. Lossless fix.
-      if (near(aw, th) && near(ah, tw)) {
-        return fail(ID, `Page ${pageNo}: the file is ${size(aw, ah)} but you asked for ${size(tw, th)} — it's rotated 90\u00b0. We can rotate it to match.`, {
+      const ratioActual = aw / ah;
+      const ratioTarget = tw / th;
+
+      // Rotated: aspect matches the target turned 90° (any scale). Lossless fix.
+      if (Math.abs(ratioActual - th / tw) <= RATIO_EPS) {
+        return fail(ID, `Page ${pageNo}: the file is turned the wrong way for ${size(tw, th)} — rotating it 90\u00b0 makes it fit. We can rotate it for you.`, {
           page: page.index, detail, fixable: true,
           fixAction: { type: 'rotate', params: { degrees: 90, page: page.index }, caveat: null },
         });
       }
 
       // Same proportions, wrong scale: clean resize.
-      const ratioActual = aw / ah;
-      const ratioTarget = tw / th;
       if (Math.abs(ratioActual - ratioTarget) <= RATIO_EPS) {
         return fail(ID, `Page ${pageNo}: the file is ${size(aw, ah)} — the right proportions, but not the final size of ${size(tw, th)}. We can scale it to fit.`, {
           page: page.index, detail, fixable: true,
@@ -79,9 +80,16 @@ export const dimensionsChecker = {
         });
       }
 
-      // Different aspect ratio: can't fit without cropping or distorting.
-      return fail(ID, `Page ${pageNo}: the file is ${size(aw, ah)} but you asked for ${size(tw, th)} — different proportions, so it can't be resized to fit without cropping or stretching the design. Rebuild it at ${size(tw, th)}, or pick a product size that matches the file.`, {
-        page: page.index, detail, // fixable stays false -> needs-attention
+      // Different aspect ratio: there's no single "correct" fit, so we make it
+      // fixable by letting the user CHOOSE how it should sit in the ordered size
+      // (scaled to fit / stretched / zoomed). The choice drives the export.
+      return fail(ID, `Page ${pageNo}: the file is ${size(aw, ah)} but you asked for ${size(tw, th)} — a different shape. Choose how it should fit the ordered size and we'll scale it to match.`, {
+        page: page.index, detail, fixable: true,
+        fixAction: {
+          type: 'resize-fit',
+          params: { to: { width: tw, height: th } },
+          caveat: 'Each fit changes the design differently — scaled adds white space, stretched distorts, zoomed crops the edges.',
+        },
       });
     });
   },

@@ -1,0 +1,8 @@
+/* Full-bleed video background — fixed behind all content. The logo and copy sit
+   in their own white boxes, so the video can read vividly: only a whisper of a
+   veil at the very top/bottom edges, and a gentle pop filter on the clip. */
+.press{position:fixed; inset:0; z-index:0; overflow:hidden; pointer-events:none; background:#fff;}
+.video{position:absolute; inset:0; width:100%; height:100%; object-fit:cover; display:block;
+  filter:saturate(1.14) contrast(1.06) brightness(1.04);}
+.veil{position:absolute; inset:0;
+  background:linear-gradient(180deg, rgba(255,255,255,.14) 0%, rgba(255,255,255,0) 18%, rgba(255,255,255,0) 86%, rgba(255,255,255,.12) 100%);}

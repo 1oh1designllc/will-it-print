@@ -147,3 +147,7 @@ Status is never color alone — always icon + label + color. Keyboard-navigable,
 - **U2 ✅** — "Fix everything" **auto re-checks and lands on the updated verdict**; caveats persist on now-passing items (e.g. "confirm CMYK on your printer's proof"); corrected-file download lives on that updated result.
 - **U3 ✅** — Annotated preview **in MVP for raster** (cheap, high layman value); **PDF preview fast-follows** with the pdf.js canvas renderer. Findings list works regardless.
 - **U4 ✅** — **In-app for MVP + print-clean stylesheet** (result prints cleanly to PDF from the browser); a shareable link/report is v1.1.
+
+## 13. Backlog / future toggles
+
+- **U5 — "My file already includes bleed" checkbox (Intake).** Flat rasters carry no bleed info, so the MVP assumes none and offers to add it — the right default for beginners (most exports have none), and the export note flags it. A future opt-in checkbox on Intake would let the rarer user who baked bleed into their export skip the add step (avoids a little extra bleed being layered on). Belongs in the Custom panel, or as a small "already has bleed?" toggle under the upload once a raster is detected. Low priority; the current default + caveat is safe.

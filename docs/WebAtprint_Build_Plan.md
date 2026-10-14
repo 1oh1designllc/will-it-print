@@ -114,7 +114,7 @@ src/
 - [x] Raster parser — **PNG + JPEG done** (byte-level header read; sees CMYK JPEGs; resolution measured at ordered size; bleed left null → unverified). End-to-end harness green (5 fixtures, bytes→verdict).
 - [ ] TIFF parser (IFD walk) — sniffed + throws `UnsupportedFormatError` for now; fast follow
 - [x] PDF parser — **pure builder done & tested** (`pdf-model.js`: box resolution + D4 inference, 6 fixtures green)
-- [ ] PDF parser — pdf.js adapter (`pdf.js`): finish box reading (Trim/Bleed not in public API), image CTM→DPI, color detection; **test against real sample PDFs in browser**
+- [x] PDF parser — pdf-lib box adapter DONE (size + bleed real, validated on real Canva exports); color + resolution = "couldn't check yet" (Phase B: image extraction via pdf.js)
 - [x] Bleed inference (D4) — infer when boxes missing, flag `inferred` so shortfalls soften to warn
 - [ ] Parser fixtures from a small folder of real sample files
 

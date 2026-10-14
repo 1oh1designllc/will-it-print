@@ -37,10 +37,11 @@ const cases = [
     check: (v) => v.rows.some((r) => r.fix) && v.primary.label === 'Fix everything I can' && /fix/.test(v.primary.count) },
   { label: 'needs (96 dpi image)', vkey: 'needs',
     doc: buildPdfModel([{ media: BLEED_OK, trim: TRIM, bleed: BLEED_OK, colorSpace: ColorSpace.CMYK, images: [img96] }], 'card.pdf', intent),
-    check: (v) => v.primary.kind === 'ghost' && v.rows.some((r) => r.label === 'Resolution' && r.guidance && !r.fix) },
-  { label: 'unverified (flat CMYK raster)', vkey: 'unverified',
-    doc: parseRaster(jpeg(1050, 600, 4), 'card.jpg', intent),
-    check: (v) => v.rows.some((r) => r.label === 'Bleed' && r.status === 'unverified' && r.guidance) },
+    check: (v) => v.primary.kind === 'solid' && v.primary.label === 'Download anyway' && v.primary.lowRes === true
+      && v.lowRes === true && v.rows.some((r) => r.label === 'Resolution' && r.guidance && !r.fix) },
+  { label: 'unverified (unreadable color)', vkey: 'unverified',
+    doc: buildPdfModel([{ media: BLEED_OK, trim: TRIM, bleed: BLEED_OK, colorSpace: ColorSpace.UNKNOWN }], 'card.pdf', intent),
+    check: (v) => v.rows.some((r) => r.label === 'Color' && r.status === 'unverified') },
 ];
 
 let fail = 0;

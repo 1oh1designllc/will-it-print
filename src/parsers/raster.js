@@ -119,32 +119,38 @@ export function parseRaster(bytes, filename, intent) {
   const doc = createDocument({ filename, sourceFormat: SourceFormat.RASTER });
   doc.intent = intent;
 
-  // Place the image to fill the ordered WIDTH. Height follows the pixel
-  // aspect ratio, so the dimensions check compares real proportions and
-  // effective DPI is measured at the printed size.
+  // Trim/media box: fit the image (its true orientation) to the ordered width,
+  // so the dimensions check sees the real proportions and can flag a rotation.
   const tw = intent.trimSize.width;
-  const scale = tw / info.width;          // points per pixel
-  const placedW = tw;
-  const placedH = info.height * scale;
-  const box = rect(0, 0, placedW, placedH);
+  const th = intent.trimSize.height;
+  const scale = tw / info.width;
+  const box = rect(0, 0, tw, info.height * scale);
 
-  const page = createPage({ index: 0, media: box, trim: box, bleed: null, inferred: false });
+  // Resolution is measured with the image filling the trim in its BEST-FIT
+  // orientation — if rotating matches the ordered shape better, count pixels
+  // that way, so a rotated file isn't wrongly read as low-res.
+  const rImg = info.width / info.height;
+  const rTrim = tw / th;
+  const rotated = Math.abs(rImg - rTrim) > Math.abs(info.height / info.width - rTrim);
+  const [npw, nph] = rotated ? [info.height, info.width] : [info.width, info.height];
+
+  // A flat raster carries no bleed: mark it as none-present (bleed = trim), so
+  // the bleed check offers to add it rather than reporting "couldn't check".
+  const page = createPage({ index: 0, media: box, trim: box, bleed: box, inferred: false });
   page.colorSpace = info.colorSpace;
   page.images.push(createPlacedImage({
     id: filename,
-    nativeWidthPx: info.width,
-    nativeHeightPx: info.height,
-    placedWidth: placedW,
-    placedHeight: placedH,
+    nativeWidthPx: npw,
+    nativeHeightPx: nph,
+    placedWidth: tw,
+    placedHeight: th,
     colorSpace: info.colorSpace,
     bbox: box,
   }));
   doc.pages = [page];
 
-  doc.warnings.push(warning('raster_no_bleed',
-    "Raster files don't carry bleed information, so bleed can't be verified from the file. If this export already includes bleed, let us know; otherwise add bleed in your design app.", 0));
   doc.warnings.push(warning('raster_size_assumed',
-    `Print size assumes the image fills the ordered width (${(tw / 72).toFixed(2)} in); resolution is measured at that size.`, 0));
+    `Print size assumes the image fills the ordered size (${(tw / 72).toFixed(2)} × ${(th / 72).toFixed(2)} in); resolution is measured there.`, 0));
 
   return doc;
 }

@@ -27,7 +27,7 @@ export function planFromActions(fixActions = []) {
 }
 
 // 8 segments: two per trim corner, aligned to the trim edges, out in the slug.
-function cropMarks(o, T, C, L) {
+export function cropMarks(o, T, C, L) {
   const x0 = o.x, y0 = o.y, x1 = o.x + T.width, y1 = o.y + T.height;
   const s = (ax, ay, bx, by) => ({ x1: ax, y1: ay, x2: bx, y2: by });
   return [

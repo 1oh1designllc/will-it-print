@@ -1,0 +1,41 @@
+/* global.css — app-wide typography + base. The living CMYK overprint (Press)
+   is the shared background; the body just stays white behind it. */
+*, *::before, *::after{ box-sizing:border-box; }
+html, body{ margin:0; }
+body{
+  font-family:"Archivo", system-ui, sans-serif;
+  background:#fff;
+  -webkit-font-smoothing:antialiased;
+}
+/* numbers (sizes, dpi, counts) line up cleanly in a proportional face */
+.tnum{ font-variant-numeric: tabular-nums; }
+
+/* --- low-resolution warning modal (modern, rounded) --- */
+.modalOverlay{
+  position:fixed; inset:0; z-index:50; display:grid; place-items:center;
+  padding:24px; background:rgba(21,22,26,.5); backdrop-filter:blur(4px);
+}
+.modalBox{
+  width:min(480px,100%); background:#fff; color:#15161A;
+  border:3px solid #C33C33; border-radius:0; padding:26px 26px 22px;
+  box-shadow:0 30px 70px rgba(20,20,35,.28);
+  animation:modalRise .28s cubic-bezier(.2,.7,.2,1) both;
+}
+@keyframes modalRise{from{opacity:0; transform:translateY(12px) scale(.98);} to{opacity:1; transform:none;}}
+.modalTitle{
+  font-family:"Archivo",sans-serif; font-weight:800; font-size:21px;
+  letter-spacing:-.01em; margin:0 0 12px; color:#C33C33;
+}
+.modalBody{ font-size:14px; line-height:1.55; margin:0 0 22px; color:#5B5B63; }
+.modalBody b{ color:#15161A; font-weight:700; }
+.modalActions{ display:flex; flex-wrap:wrap; gap:10px; justify-content:flex-end; }
+.modalBtn{
+  font:700 14px "Archivo",sans-serif; padding:12px 20px; border-radius:0;
+  border:2px solid #15161A; cursor:pointer; transition:transform .14s ease, background .14s ease;
+}
+.modalBtn:hover{ transform:translateY(-1px); }
+.modalGhost{ background:#fff; color:#15161A; }
+.modalGhost:hover{ background:rgba(0,0,0,.05); }
+.modalSolid{ background:#C33C33; border-color:#C33C33; color:#fff; }
+.modalSolid:hover{ background:#a62f27; }
+.modalBtn:focus-visible{ outline:2px solid #00A0C6; outline-offset:2px; }

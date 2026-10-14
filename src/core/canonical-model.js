@@ -155,12 +155,13 @@ export function createDocument({ filename, sourceFormat }) {
 }
 
 /** @returns {Page} */
-export function createPage({ index, media, trim = null, bleed = null, inferred = false }) {
+export function createPage({ index, media, trim = null, bleed = null, inferred = false, imagesKnown = true }) {
   return {
     index,
     boxes: { media, trim, bleed, inferred },
     colorSpace: ColorSpace.UNKNOWN,
     images: [],
+    imagesKnown, // false = images not inspected yet (resolution -> unverified)
     hasVector: false,
     textRuns: [],
   };

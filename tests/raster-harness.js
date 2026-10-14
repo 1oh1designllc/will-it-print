@@ -59,22 +59,22 @@ function tiff(w, h, photometric) {
 const fixtures = [
   { label: 'PNG RGB 1050x600 (300dpi @ size)', file: [png(1050, 600, 2), 'flyer.png'],
     model: { dpi: 300, cs: ColorSpace.RGB },
-    expectVerdict: Verdict.FIXABLE },            // RGB -> convert (bleed unverified, but a fixable fail outranks)
-  { label: 'JPEG CMYK 1050x600 (clean but no bleed)', file: [jpeg(1050, 600, 4), 'card.jpg'],
+    expectVerdict: Verdict.FIXABLE },            // RGB + add-bleed, both fixable
+  { label: 'JPEG CMYK 1050x600 (add bleed)', file: [jpeg(1050, 600, 4), 'card.jpg'],
     model: { dpi: 300, cs: ColorSpace.CMYK },
-    expectVerdict: Verdict.UNVERIFIED },         // nothing fails, but bleed can't be checked
+    expectVerdict: Verdict.FIXABLE },            // clean, but bleed can be added
   { label: 'JPEG RGB 336x192 (96dpi @ size)', file: [jpeg(336, 192, 3), 'lowres.jpg'],
     model: { dpi: 96, cs: ColorSpace.RGB },
     expectVerdict: Verdict.NEEDS_ATTENTION },    // resolution fail is unfixable
-  { label: 'PNG RGB 1000x1000 (wrong aspect)', file: [png(1000, 1000, 6), 'square.png'],
+  { label: 'PNG RGB 1000x1000 (wrong aspect, fixable via fit)', file: [png(1000, 1000, 6), 'square.png'],
     model: { dpi: null, cs: ColorSpace.RGB },
-    expectVerdict: Verdict.NEEDS_ATTENTION },    // aspect mismatch is unfixable
+    expectVerdict: Verdict.FIXABLE },            // wrong shape now fixable via fit choice
   { label: 'PNG gray 1050x600 (grayscale ok)', file: [png(1050, 600, 0), 'bw.png'],
     model: { dpi: 300, cs: ColorSpace.GRAY },
-    expectVerdict: Verdict.UNVERIFIED },         // gray allowed; only bleed unverified
+    expectVerdict: Verdict.FIXABLE },            // gray ok; add bleed
   { label: 'TIFF CMYK 1050x600', file: [tiff(1050, 600, 5), 'scan.tiff'],
     model: { dpi: 300, cs: ColorSpace.CMYK },
-    expectVerdict: Verdict.UNVERIFIED },
+    expectVerdict: Verdict.FIXABLE },
   { label: 'TIFF RGB 336x192 (low-res)', file: [tiff(336, 192, 2), 'small.tif'],
     model: { dpi: 96, cs: ColorSpace.RGB },
     expectVerdict: Verdict.NEEDS_ATTENTION },

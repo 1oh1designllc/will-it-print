@@ -19,7 +19,7 @@
  * ------------------------------------------------------------------
  */
 import { minDpi } from '../canonical-model.js';
-import { pass, warn, fail } from '../checker.js';
+import { pass, warn, unverified, fail } from '../checker.js';
 
 const ID = 'resolution';
 
@@ -37,6 +37,14 @@ export const resolutionChecker = {
 
     for (const page of doc.pages) {
       const pageNo = page.index + 1;
+
+      // Images not inspected yet (e.g. PDF before image extraction) — can't judge.
+      if (page.imagesKnown === false) {
+        findings.push(unverified(ID, `Page ${pageNo}: image resolution couldn't be checked in this file yet.`, {
+          page: page.index,
+        }));
+        continue;
+      }
 
       // Nothing raster to check — vector and text stay sharp at any size.
       if (page.images.length === 0) {

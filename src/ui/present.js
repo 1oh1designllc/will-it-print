@@ -7,7 +7,7 @@
 import { METHOD_LABEL } from './presets.js';
 
 const LABEL = { dimensions: 'Size', bleed: 'Bleed', resolution: 'Resolution', color: 'Color' };
-const FIX_LABEL = { 'add-bleed': 'Add bleed', 'convert-color': 'Convert to CMYK', resize: 'Resize to fit', rotate: 'Rotate to fit' };
+const FIX_LABEL = { 'add-bleed': 'Add bleed', 'convert-color': 'Convert to CMYK', resize: 'Resize to fit', rotate: 'Rotate to fit', 'resize-fit': 'Choose a fit' };
 const VKEY = { ready: 'ready', fixable: 'fixable', unverified: 'unverified', 'needs-attention': 'needs' };
 
 const mm = (pt) => (pt / 72 * 25.4).toFixed(1);
@@ -23,11 +23,12 @@ const P = {
     const t = f.fixAction?.type;
     if (t === 'rotate') return { msg: 'This file is rotated for the size you ordered.', why: 'Right size, just turned 90° — we can rotate it.', data: size };
     if (t === 'resize') return { msg: 'The right proportions, but not the final size.', why: 'Same shape, different scale — we can scale it to fit.', data: size };
+    // resize-fit: wrong shape, resolved by the fit choice below.
     return {
-      msg: 'This file is the wrong shape for the size you ordered.',
-      why: 'It can’t be resized to fit without cropping or stretching the design.',
+      msg: 'This file is a different shape than the size you ordered.',
+      why: 'Pick how it should fit the ordered size below — the export uses your choice.',
       data: size,
-      guidance: `Rebuild at ${d.target ? `${mm(d.target.w)}×${mm(d.target.h)} mm` : 'the ordered size'}, or pick a size that matches the file.`,
+      chooseFit: true,
     };
   },
   bleed(f) {
@@ -46,13 +47,14 @@ const P = {
       return { msg: has ? 'Sharp enough to print crisp.' : 'No raster images to check.', why: has ? 'Clears the minimum at print size.' : 'Vector and text stay sharp at any size.', data: has ? `${d.lowest} dpi at print size  (${d.target} dpi ideal)` : null };
     }
     if (f.status === 'warn') return { msg: 'Usable, but under the ideal resolution.', why: 'Fine for less detailed work; sharper needs a higher-res source.', data: `${d.dpi} dpi at print size  (${d.target} dpi ideal)` };
+    if (f.status === 'unverified') return { msg: 'Image resolution hasn’t been checked in this file yet.', why: 'Size, bleed and colour above are checked for real; reading image detail from PDFs is coming next.', data: null };
     return { msg: 'This image will look pixelated at print size.', why: 'There’s no honest way to add detail that isn’t in the file.', data: `${d.dpi} dpi at print size  (${d.floor} dpi minimum)`, guidance: 'Use a higher-resolution source, or place it smaller.' };
   },
   color(f) {
     const d = f.detail || {};
     const cs = up(d.colorSpace); const proc = up(d.process || 'cmyk');
     if (f.status === 'pass') return { msg: 'Print-ready colors.', why: 'Already in the press color space.', data: `${cs} — correct for this method` };
-    if (f.status === 'unverified') return { msg: 'We couldn’t read the color mode.', why: 'Some files don’t declare it clearly.', data: 'Color mode unknown', guidance: 'Re-export as PDF/X, or tell us the intended color mode.' };
+    if (f.status === 'unverified') return { msg: 'Color mode hasn’t been checked in this file yet.', why: 'Reading colour from PDFs is coming next; for images it’s checked already.', data: null };
     if (f.status === 'warn') return { msg: 'Uses a spot color this method prints as process.', why: 'Often an unexpected extra plate — unless you meant a Pantone.', data: `Spot → ${proc}` };
     return { msg: 'Some screen colors will shift when printed.', why: `This method needs ${proc}; ${cs} gets converted and bright colors move.`, data: `${cs} → needs ${proc}` };
   },
@@ -62,12 +64,47 @@ function toRow(f) {
   const p = (P[f.checkId] || (() => ({ msg: f.message, why: '', data: null })))(f);
   return {
     id: `${f.checkId}-${f.scope?.page ?? 0}-${f.detail?.imageId ?? ''}`,
+    page: f.scope?.page ?? 0,
     label: LABEL[f.checkId] || f.checkId,
     status: f.status,
     msg: p.msg, why: p.why, data: p.data || null,
     fix: f.fixAction ? { label: FIX_LABEL[f.fixAction.type] || 'Fix', caveat: f.fixAction.caveat || '' } : null,
     guidance: p.guidance || null,
+    chooseFit: !!p.chooseFit, // wrong-shape: resolved by the fit-option panel
   };
+}
+
+// Collapse per-page findings into what the user sees. A check can emit several
+// findings per page (resolution: one per image), so notes count DISTINCT PAGES,
+// never findings. Identical results across pages merge to one row ("Both sides");
+// genuinely different sides split and are labelled by the pages they cover.
+function collapse(rawRows) {
+  const docPages = [...new Set(rawRows.map((r) => r.page))].sort((a, b) => a - b);
+  const nPages = docPages.length;
+  const sig = (r) => `${r.status}|${r.msg}|${r.fix?.label || ''}|${r.guidance || ''}`;
+  const sideName = (p) => (nPages === 2 ? (p === 0 ? 'Front' : 'Back') : `Page ${p + 1}`);
+  const noteFor = (pageSet) => {
+    if (nPages <= 1) return null;
+    if (pageSet.size >= nPages) return nPages === 2 ? 'Both sides' : 'All pages';
+    return [...pageSet].sort((a, b) => a - b).map(sideName).join(' · ');
+  };
+
+  const order = []; const groups = new Map();
+  for (const r of rawRows) {
+    if (!groups.has(r.label)) { groups.set(r.label, []); order.push(r.label); }
+    groups.get(r.label).push(r);
+  }
+  const out = [];
+  for (const label of order) {
+    // sub-group by signature, preserving first-seen order
+    const bySig = new Map();
+    for (const r of groups.get(label)) {
+      if (!bySig.has(sig(r))) bySig.set(sig(r), { row: r, pages: new Set() });
+      bySig.get(sig(r)).pages.add(r.page);
+    }
+    for (const { row, pages } of bySig.values()) out.push({ ...row, note: noteFor(pages) });
+  }
+  return out;
 }
 
 const BANNER = {
@@ -83,15 +120,22 @@ const BANNER = {
  */
 export function toView({ verdict, findings }, meta = {}) {
   const vkey = VKEY[verdict] || verdict;
+  const rows = collapse(findings.map(toRow));
+  // Count what the user actually sees (collapsed rows), not per-page findings.
   const n = {
-    fix: findings.filter((f) => f.fixable).length,
-    block: findings.filter((f) => f.status === 'fail' && !f.fixable).length,
-    unv: findings.filter((f) => f.status === 'unverified').length,
+    fix: rows.filter((r) => !!r.fix).length,
+    block: rows.filter((r) => r.status === 'fail' && !r.fix).length,
+    unv: rows.filter((r) => r.status === 'unverified').length,
   };
   const b = BANNER[vkey](n);
+  // Low-resolution blocker: let the user download anyway behind a warning modal.
+  const lowRes = findings.some((f) => f.checkId === 'resolution' && f.status === 'fail');
+  const primary = (vkey === 'needs' && lowRes)
+    ? { label: 'Download anyway', kind: 'solid', lowRes: true }
+    : b.primary;
   const it = meta.intent;
   const job = it
     ? { file: meta.filename || 'artwork', size: `${(it.trimSize.width / 72).toFixed(2)} × ${(it.trimSize.height / 72).toFixed(2)} in`, method: METHOD_LABEL[it.printMethod] || it.printMethod, qty: `× ${it.quantity}` }
     : (meta.job || { file: 'artwork', size: '', method: '', qty: '' });
-  return { job, verdict: vkey, headline: b.headline, sub: b.sub, primary: b.primary, rows: findings.map(toRow) };
+  return { job, verdict: vkey, headline: b.headline, sub: b.sub, primary, rows, lowRes };
 }

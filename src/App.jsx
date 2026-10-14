@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import Intake from './ui/Intake.jsx';
 import Result from './ui/Result.jsx';
+import Press from './ui/Press.jsx';
 import { SCENARIOS } from './ui/fixtures.js';
 import { toView } from './ui/present.js';
 import { parseRaster } from './parsers/raster.js';
@@ -18,14 +19,36 @@ const imageType = (name) => { const e = ext(name); return e === 'png' ? 'png' : 
 
 const NAV = ['live', 'ready', 'fixable', 'unverified', 'needs'];
 const LABEL = { live: 'Live', ready: 'Yes', fixable: 'Almost', unverified: 'Maybe', needs: 'Not yet' };
-const PAGE = { minHeight: '100vh', background: '#F4F3EE', display: 'grid', placeItems: 'center', padding: 24, textAlign: 'center', fontFamily: 'system-ui,sans-serif' };
+const FONT = '"Archivo",system-ui,sans-serif';
+const PAGE = { position: 'relative', zIndex: 1, minHeight: '100vh', background: 'transparent', display: 'grid', placeItems: 'center', padding: 24, textAlign: 'center', fontFamily: FONT };
 
 const Panel = ({ title, body }) => (
   <div style={PAGE}><div style={{ maxWidth: 420 }}>
-    <h2 style={{ fontFamily: '"Space Grotesk",sans-serif', margin: '0 0 8px' }}>{title}</h2>
+    <h2 style={{ fontFamily: FONT, fontWeight: 800, margin: '0 0 8px' }}>{title}</h2>
     <p style={{ color: '#3A3A36' }}>{body}</p>
   </div></div>
 );
+
+// Low-resolution warning before letting the user export anyway.
+function LowResModal({ onCancel, onAccept }) {
+  return (
+    <div className="modalOverlay" role="dialog" aria-modal="true" aria-labelledby="lrTitle" onClick={onCancel}>
+      <div className="modalBox" onClick={(e) => e.stopPropagation()}>
+        <h2 id="lrTitle" className="modalTitle">Low resolution — print at your own risk</h2>
+        <p className="modalBody">
+          This file’s images fall below the recommended resolution for the size you ordered, so it
+          will likely look soft or pixelated in print. This app <b>cannot add detail that isn’t
+          already in the file</b> — exporting will not improve the resolution. If you continue,
+          1Oh1 Design LLC is not responsible for poor print quality caused by low resolution.
+        </p>
+        <div className="modalActions">
+          <button className="modalBtn modalGhost" onClick={onCancel}>Cancel</button>
+          <button className="modalBtn modalSolid" onClick={onAccept}>Download anyway</button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function download(bytes, name) {
   const url = URL.createObjectURL(new Blob([bytes], { type: 'application/pdf' }));
@@ -37,39 +60,108 @@ function download(bytes, name) {
 export default function App() {
   const [mode, setMode] = useState('live');
   const [stage, setStage] = useState('intake');
-  const [job, setJob] = useState(null);   // { view, doc, result, source }
+  const [job, setJob] = useState(null);   // { view, doc, result, source, intent }
   const [error, setError] = useState('');
   const [status, setStatus] = useState('');
+  const [fitMode, setFitMode] = useState('proportional'); // wrong-shape fit choice
+  const [orig, setOrig] = useState(null);   // unrotated source + base intent
+  const [rotation, setRotation] = useState(0); // artwork turns (0/90/180/270)
+  const [showLowRes, setShowLowRes] = useState(false); // low-res download warning
 
-  const reset = () => { setStage('intake'); setJob(null); setError(''); setStatus(''); };
+  const reset = () => {
+    setStage('intake'); setJob(null); setError(''); setStatus('');
+    setFitMode('proportional'); setOrig(null); setRotation(0);
+  };
+
+  // Build doc + checks + previews for a (possibly rotated) source and intent.
+  async function analyzeSource(source, intent) {
+    let doc;
+    if (source.kind === 'pdf') {
+      const { parsePdf } = await import('./parsers/pdf.js');
+      doc = await parsePdf(source.bytes, source.name, intent);
+    } else {
+      doc = parseRaster(source.bytes, source.name, intent);
+    }
+    const result = runChecks(doc, resolveRuleset(intent), ALL);
+    const view = toView(result, { filename: source.name, intent });
+    setJob({ view, doc, result, source, intent });
+    setStage('result');
+    // Best-effort previews (additive — never blocks the result if they fail).
+    try {
+      const { loadSourceImages, makeThumb, makeFitOptions } = await import('./ui/preview.js');
+      const imgs = await loadSourceImages(source);
+      if (imgs.length) {
+        const previews = imgs.map((im) => makeThumb(im)).filter(Boolean);
+        const wrongShape = view.rows.some((r) => r.chooseFit);
+        const fits = wrongShape ? makeFitOptions(imgs[0], intent.trimSize.width, intent.trimSize.height) : null;
+        setJob((j) => (j && j.source === source ? { ...j, previews, fits } : j));
+      }
+    } catch { /* no preview */ }
+  }
 
   async function handleAnalyze(file, intent) {
-    if (ext(file.name) === 'pdf') { setStage('pdf'); return; }
-    setStage('analyzing'); setStatus('');
+    setStage('analyzing'); setStatus(''); setFitMode('proportional');
+    setRotation(0);
     try {
       const bytes = new Uint8Array(await file.arrayBuffer());
-      const doc = parseRaster(bytes, file.name, intent);
-      const result = runChecks(doc, resolveRuleset(intent), ALL);
-      setJob({ view: toView(result, { filename: file.name, intent }), doc, result,
-        source: { kind: 'raster', bytes, imageType: imageType(file.name), name: file.name } });
-      setStage('result');
+      const kind = ext(file.name) === 'pdf' ? 'pdf' : 'raster';
+      const source = { kind, bytes, name: file.name, imageType: kind === 'raster' ? imageType(file.name) : undefined };
+      setOrig({ source, intent });
+      await analyzeSource(source, intent);
     } catch (e) {
       setError(e.message || 'That file could not be read.');
       setStage('error');
     }
   }
 
-  // Primary/fix action: export a print-ready PDF (applies fixable actions + marks + bleed).
-  async function onFix() {
-    if (!job || !(job.view.verdict === 'ready' || job.view.verdict === 'fixable')) return;
-    if (job.source.imageType === 'tiff') { setStatus('Checks apply to TIFF, but print-ready export isn’t available for TIFF yet — export a PNG, JPG, or PDF.'); return; }
+  // Re-run analysis on the artwork turned by `rot` (passed explicitly so we
+  // don't read stale state right after setState).
+  async function rerun(rot) {
+    if (!orig) return;
+    setFitMode('proportional'); setStatus('');
     try {
+      const { rotateSource } = await import('./ui/rotate.js');
+      const source = await rotateSource(orig.source, rot);
+      await analyzeSource(source, orig.intent);
+    } catch (e) {
+      setStatus(`Couldn’t rotate: ${e.message}`);
+    }
+  }
+
+  const rotate = (d) => { const n = (((rotation + d) % 360) + 360) % 360; setRotation(n); rerun(n); };
+
+  // Primary button: export when good; for a low-res blocker, warn first.
+  function onFix() {
+    if (!job) return;
+    const v = job.view.verdict;
+    if (v === 'ready' || v === 'fixable') { doExport(); return; }
+    if (job.view.primary?.lowRes) { setShowLowRes(true); return; }
+    // other blockers: no export path
+  }
+
+  // Build + download the print-ready PDF (applies fixable actions + marks + bleed).
+  // Low-res files export as-is — nothing is upscaled.
+  async function doExport() {
+    if (!job) return;
+    if (job.source.kind !== 'pdf' && job.source.imageType === 'tiff') { setStatus('Checks apply to TIFF, but print-ready export isn’t available for TIFF yet — export a PNG, JPG, or PDF.'); return; }
+    const outName = job.source.name.replace(/\.[^.]+$/, '') + '-print-ready.pdf';
+    // Wrong-shape files resolve via the chosen fit; everything else fills normally.
+    const wrongShape = job.view.rows.some((r) => r.chooseFit);
+    const fit = wrongShape ? fitMode : 'fill';
+    try {
+      if (job.source.kind === 'pdf') {
+        const { renderPrintReadyPdf } = await import('./fix/render-pdf.js');
+        const { bytes, notes } = await renderPrintReadyPdf(job.source.bytes, job.doc, { fit });
+        download(bytes, outName);
+        setStatus(`Saved a print-ready PDF. ${notes.join(' ')}`.trim());
+        return;
+      }
       const actions = job.result.findings.filter((f) => f.fixAction).map((f) => f.fixAction);
       const plan = buildFixPlan(job.doc, actions);
       const { renderPrintReady } = await import('./fix/render.js');
-      const out = await renderPrintReady(plan, job.source);
-      download(out, job.source.name.replace(/\.[^.]+$/, '') + '-print-ready.pdf');
-      setStatus(`Saved a print-ready PDF. ${plan.notes.join(' ')}`.trim());
+      const out = await renderPrintReady(plan, job.source, { fit });
+      download(out, outName);
+      setStatus(`Saved a print-ready PDF.`);
     } catch (e) {
       setStatus(`Couldn’t build the print-ready file: ${e.message}`);
     }
@@ -78,8 +170,9 @@ export default function App() {
   const live = mode === 'live';
   return (
     <>
+      <Press />
       <nav style={{ position: 'sticky', top: 0, zIndex: 5, display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center',
-        padding: '10px 20px', background: '#F4F3EE', borderBottom: '1px solid #E3E1DA', fontFamily: 'monospace', fontSize: 12 }}>
+        padding: '10px 20px', background: 'rgba(255,255,255,.82)', backdropFilter: 'blur(8px)', borderBottom: '1px solid rgba(0,0,0,.06)', fontFamily: FONT, fontSize: 12 }}>
         <span style={{ color: '#6B6A64', letterSpacing: '.1em' }}>PREVIEW</span>
         {NAV.map((k) => (
           <button key={k} onClick={() => { setMode(k); if (k === 'live') reset(); }}
@@ -95,14 +188,22 @@ export default function App() {
       </nav>
 
       {status && <div style={{ padding: '9px 20px', background: '#EAF3EE', borderBottom: '1px solid #CFE3D7',
-        fontFamily: 'monospace', fontSize: 12, color: '#1E5B3E' }}>{status}</div>}
+        fontFamily: FONT, fontSize: 12, color: '#1E5B3E' }}>{status}</div>}
 
       {!live ? <Result {...SCENARIOS[mode]} onFix={() => {}} />
         : stage === 'intake' ? <Intake onAnalyze={handleAnalyze} />
         : stage === 'analyzing' ? <Panel title="Checking your file…" body="One moment." />
-        : stage === 'pdf' ? <Panel title="PDF checking is almost ready" body="The PDF reader is still being wired up. Drop a PNG or JPG to see a full result right now." />
         : stage === 'error' ? <Panel title="Couldn't read that file" body={error} />
-        : <Result {...job.view} onFix={onFix} />}
+        : <Result {...job.view} onFix={onFix} previews={job.previews} fits={job.fits}
+            fitMode={fitMode} onFitMode={setFitMode}
+            rotation={rotation} onRotate={rotate} />}
+
+      {showLowRes && (
+        <LowResModal
+          onCancel={() => setShowLowRes(false)}
+          onAccept={() => { setShowLowRes(false); doExport(); }}
+        />
+      )}
     </>
   );
 }

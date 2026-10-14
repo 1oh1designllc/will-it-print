@@ -1,93 +1,138 @@
 /**
- * parsers/pdf.js  —  pdf.js ADAPTER  (⚠ SKELETON — verify in the browser)
- * ------------------------------------------------------------------
- * The impure half: pull raw values out of pdf.js and hand them to the
- * pure buildPdfModel (which is already tested). This file CANNOT run in
- * the Node harness — it needs pdf.js + a real PDF. Finish and verify it
- * against actual sample files in the app.
+ * parsers/pdf.js — PDF adapter (pdf-lib).
  *
- * Three integration snags are called out inline. They are the reason we
- * test this against real files instead of trusting it:
+ * Phase A (this): read the page boxes for real and run the box-based checks.
+ *   - MediaBox always; TrimBox/BleedBox/CropBox read raw so we can tell
+ *     "declared" from "absent" (absent -> pure builder infers, per D4).
+ *   - This makes SIZE and BLEED real — the two most common rejection reasons.
+ *     Validated against real Canva/design exports (trim 252x144, bleed 270x162).
  *
- *   (A) Trim/BleedBox are NOT in pdf.js's public API. page.view gives
- *       the MediaBox∩CropBox only. The other boxes live in the page
- *       dictionary and must be read at a lower level — approach TBD
- *       against the installed pdf.js version.
- *   (B) Effective image DPI needs the CTM at paint time, which means
- *       walking the operator list and tracking the graphics-state stack
- *       (save/restore/transform) to get each image's placed size.
- *   (C) Page-level color space is genuinely hard in PDF (every object
- *       can differ). MVP: infer from placed-image color spaces; leave
- *       UNKNOWN when unsure so the color check returns "unverified"
- *       rather than guessing.
- * ------------------------------------------------------------------
+ * Colour is read here from image colour spaces (pdf-lib object graph).
+ * Effective DPI is read by a best-effort pdf.js pass (pdf-dpi.js) — if that
+ * fails, imagesKnown stays false and resolution reads "not checked yet", so a
+ * PDF never gets a false green on an unchecked property.
+ *
+ * pdf-lib runs in the browser AND in Node, so this path is testable headless.
  */
-// import * as pdfjsLib from 'pdfjs-dist';   // set workerSrc in the app entry
+import { PDFDocument, PDFName, PDFDict, PDFArray, PDFRawStream } from 'pdf-lib';
 import { buildPdfModel } from './pdf-model.js';
+import { extractImagesPerPage } from './pdf-dpi.js';
 import { ColorSpace } from '../core/canonical-model.js';
 
-/** [x1,y1,x2,y2] (pdf.js box array) -> {x,y,width,height} or null. */
-function boxArr(a) {
-  if (!a || a.length !== 4) return null;
-  const x = Math.min(a[0], a[2]);
-  const y = Math.min(a[1], a[3]);
-  return { x, y, width: Math.abs(a[2] - a[0]), height: Math.abs(a[3] - a[1]) };
+// A raw [x1,y1,x2,y2] box array -> {x,y,width,height}, or null if absent.
+function rawBox(page, name) {
+  const a = page.node.get(PDFName.of(name));
+  if (!a || typeof a.get !== 'function' || a.size?.() < 4) return null;
+  const n = (i) => a.get(i).asNumber();
+  return { x: n(0), y: n(1), width: n(2) - n(0), height: n(3) - n(1) };
+}
+
+// Map a PDF colour-space object to our enum. Handles names, ICCBased (/N),
+// Indexed (base), and common array forms.
+function csFromObject(obj, ctx) {
+  if (!obj) return null;
+  const o = obj instanceof PDFName ? obj : obj;
+  if (o instanceof PDFName) {
+    const n = o.asString();
+    if (n === '/DeviceRGB' || n === '/CalRGB' || n === '/RGB') return ColorSpace.RGB;
+    if (n === '/DeviceCMYK' || n === '/CMYK') return ColorSpace.CMYK;
+    if (n === '/DeviceGray' || n === '/CalGray' || n === '/G') return ColorSpace.GRAY;
+    return null;
+  }
+  const arr = o instanceof PDFArray ? o : null;
+  if (!arr) return null;
+  const head = arr.get(0);
+  const name = head instanceof PDFName ? head.asString() : '';
+  if (name === '/ICCBased') {
+    const stream = ctx.lookup(arr.get(1));
+    const N = stream?.dict?.get(PDFName.of('N'))?.asNumber?.();
+    return N === 4 ? ColorSpace.CMYK : N === 1 ? ColorSpace.GRAY : ColorSpace.RGB;
+  }
+  if (name === '/Indexed' || name === '/I') return csFromObject(ctx.lookup(arr.get(1)), ctx);
+  if (name === '/DeviceN' || name === '/Separation') return ColorSpace.CMYK; // spot -> process
+  if (name === '/CalRGB') return ColorSpace.RGB;
+  if (name === '/CalGray') return ColorSpace.GRAY;
+  return null;
+}
+
+// Walk a resources dict for image colour spaces, recursing into Form XObjects.
+function collectColors(resources, ctx, out, seen) {
+  const xobjs = resources && ctx.lookupMaybe(resources.get(PDFName.of('XObject')), PDFDict);
+  if (!xobjs) return;
+  for (const [, ref] of xobjs.entries()) {
+    if (seen.has(ref)) continue; seen.add(ref);
+    const xo = ctx.lookup(ref);
+    const dict = xo?.dict || xo;
+    if (!(dict instanceof PDFDict)) continue;
+    const sub = dict.get(PDFName.of('Subtype'));
+    const subName = sub instanceof PDFName ? sub.asString() : '';
+    if (subName === '/Image') {
+      const cs = csFromObject(ctx.lookup(dict.get(PDFName.of('ColorSpace'))), ctx);
+      if (cs) out.add(cs);
+    } else if (subName === '/Form') {
+      collectColors(ctx.lookupMaybe(dict.get(PDFName.of('Resources')), PDFDict), ctx, out, seen);
+    }
+  }
+}
+
+// The set of colour families used by a page's IMAGES (pdf-lib object graph).
+function imageColorSet(page, ctx) {
+  const out = new Set();
+  try { collectColors(ctx.lookupMaybe(page.node.get(PDFName.of('Resources')), PDFDict), ctx, out, new Set()); }
+  catch { /* leave empty */ }
+  return out;
+}
+
+// Reduce a set of colour families (image + vector) to one verdict colour.
+function reduceColor(set) {
+  const has = (c) => set.has(c);
+  if (has(ColorSpace.RGB) && has(ColorSpace.CMYK)) return ColorSpace.MIXED;
+  if (has(ColorSpace.RGB)) return ColorSpace.RGB;
+  if (has(ColorSpace.CMYK)) return ColorSpace.CMYK;
+  if (has(ColorSpace.GRAY)) return ColorSpace.GRAY;
+  return ColorSpace.UNKNOWN;
 }
 
 /**
- * @param {ArrayBuffer|Uint8Array} data  the PDF bytes
+ * @param {ArrayBuffer|Uint8Array} data
  * @param {string} filename
- * @param {import('../core/canonical-model.js').PrintIntent} intent
- * @returns {Promise<import('../core/canonical-model.js').PrintDocument>}
+ * @param {import('../canonical-model.js').PrintIntent} intent
+ * @returns {Promise<import('../canonical-model.js').PrintDocument>}
  */
 export async function parsePdf(data, filename, intent) {
-  const pdfjsLib = await import('pdfjs-dist');
-  const pdf = await pdfjsLib.getDocument({ data }).promise;
+  const bytes = data instanceof Uint8Array ? data : new Uint8Array(data);
+  const pdf = await PDFDocument.load(bytes, { updateMetadata: false });
 
-  const rawPages = [];
-  for (let n = 1; n <= pdf.numPages; n++) {
-    const page = await pdf.getPage(n);
+  const ctx = pdf.context;
+  const rawPages = pdf.getPages().map((p) => {
+    const mb = p.getMediaBox();
+    return {
+      media: { x: mb.x, y: mb.y, width: mb.width, height: mb.height },
+      trim: rawBox(p, 'TrimBox'),
+      bleed: rawBox(p, 'BleedBox'),
+      crop: rawBox(p, 'CropBox'),
+      _imageColors: imageColorSet(p, ctx),  // from images; vectors added below
+      colorSpace: ColorSpace.UNKNOWN,
+      imagesKnown: false,                    // set true below once DPI is read
+      hasVector: true,
+    };
+  });
 
-    // (A) MediaBox is available; Trim/Bleed/Crop need lower-level access.
-    //     page.view is [x1,y1,x2,y2] of the visible (media∩crop) box.
-    const media = boxArr(page.view);
-    const trim = boxArr(readBox(page, 'TrimBox'));   // TODO: implement readBox
-    const bleed = boxArr(readBox(page, 'BleedBox'));
-    const crop = boxArr(readBox(page, 'CropBox'));
-
-    // (B) images + effective DPI from the operator list.
-    const images = await extractImages(page); // TODO: CTM tracking
-
-    // (C) best-effort page color space.
-    const colorSpace = pageColorSpace(images);
-
-    rawPages.push({ media, trim, bleed, crop, images, colorSpace, hasVector: true });
+  // Best-effort pdf.js pass: content images (for DPI) + vector colours. Colour
+  // is image colours ∪ vector colours, so a vector-only card is judged too. On
+  // any failure, resolution stays "not checked" and colour falls back to images.
+  try {
+    const perPage = await extractImagesPerPage(bytes); // module copies + normalizes
+    rawPages.forEach((rp, i) => {
+      const pg = perPage[i] || { images: [], colors: new Set() };
+      rp.images = pg.images;
+      rp.imagesKnown = true;
+      rp.colorSpace = reduceColor(new Set([...rp._imageColors, ...pg.colors]));
+      delete rp._imageColors;
+    });
+  } catch {
+    rawPages.forEach((rp) => { rp.colorSpace = reduceColor(rp._imageColors); delete rp._imageColors; });
   }
 
-  // Everything below here is the already-tested pure path.
   return buildPdfModel(rawPages, filename, intent);
-}
-
-/* ---- stubs to implement against real files (see snags A–C) ---- */
-
-/** (A) Read a named box from the page dictionary. Placeholder. */
-function readBox(_page, _name) {
-  // TODO: access the page dict for TrimBox/BleedBox/CropBox. Not public API.
-  return null; // until then: null -> pure builder infers per D4
-}
-
-/** (B) Walk operator list, track CTM, emit placed images. Placeholder. */
-async function extractImages(_page) {
-  // TODO: getOperatorList(); on paintImageXObject use the current CTM to
-  // derive placedWidth/Height (points); intrinsic px from page.objs.
-  return [];
-}
-
-/** (C) Reduce image color spaces to a single page color space. */
-function pageColorSpace(images) {
-  if (!images.length) return ColorSpace.UNKNOWN;
-  const set = new Set(images.map((im) => im.colorSpace).filter(Boolean));
-  if (set.size === 1) return [...set][0];
-  if (set.has(ColorSpace.RGB) && (set.has(ColorSpace.CMYK) || set.size > 1)) return ColorSpace.MIXED;
-  return ColorSpace.UNKNOWN;
 }
