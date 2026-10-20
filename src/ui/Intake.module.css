@@ -78,6 +78,10 @@ select.in{appearance:auto; -webkit-appearance:auto;}
 .cta:hover:not(:disabled){background:#000; transform:translateY(-1px);}
 .cta:disabled{opacity:.38; cursor:not-allowed;}
 .note{margin:12px 4px 0; font-size:12px; line-height:1.5; color:var(--graphite); text-align:center;}
+.donate{display:block; width:fit-content; margin:14px auto 0; font:700 13px "Archivo",sans-serif;
+  text-decoration:none; padding:10px 16px; border:2px solid var(--ink); border-radius:0; background:#fff;
+  color:var(--ink); transition:background .14s ease;}
+.donate:hover{background:rgba(0,0,0,.05);}
 
 .stage :global(button):focus-visible,.stage :global(input):focus-visible,.stage :global(select):focus-visible{
   outline:2px solid var(--focus); outline-offset:2px;}

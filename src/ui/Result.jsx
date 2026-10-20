@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import s from './Result.module.css';
+import { ONE_OH_ONE_CONTACT, DONATE_URL, EMAIL_ENDPOINT } from '../config.js';
 
 const TONE = { ready: '--yes', fixable: '--almost', unverified: '--maybe', needs: '--no' };
 const ST = { pass: '--yes', warn: '--almost', unverified: '--maybe', fail: '--no' };
@@ -55,8 +56,6 @@ const CTA_COPY = {
   unverified: { lead: 'Want a second set of eyes?', line: 'A designer can check what the tool couldn’t and make sure it prints right.', btn: 'Ask 1Oh1 to check it' },
   ready:      { lead: 'Looks print-ready.', line: 'Need your next card, flyer, or poster designed right the first time?', btn: 'Work with 1Oh1 Design' },
 };
-const ONE_OH_ONE_CONTACT = 'mailto:info@1oh1designllc.com?subject=Will%20It%20Print%3F%20%E2%80%94%20help%20with%20my%20file';
-
 function OneOhOneCta({ verdict }) {
   const c = CTA_COPY[verdict] || CTA_COPY.ready;
   return (
@@ -67,6 +66,53 @@ function OneOhOneCta({ verdict }) {
       </div>
       <a className={s.ctaBtn} href={ONE_OH_ONE_CONTACT}>{c.btn}</a>
     </aside>
+  );
+}
+
+// "Email me this report" — lead capture. Hidden until EMAIL_ENDPOINT is set in
+// config.js. Posts the email + a little context to the form service.
+function EmailCapture({ job, verdict }) {
+  const [email, setEmail] = useState('');
+  const [state, setState] = useState('idle'); // idle | sending | done | error
+  if (!EMAIL_ENDPOINT) return null;
+  const submit = async (e) => {
+    e.preventDefault();
+    if (!email || state === 'sending') return;
+    setState('sending');
+    try {
+      const res = await fetch(EMAIL_ENDPOINT, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify({ email, file: job.file, size: job.size, verdict, source: 'Will It Print?' }),
+      });
+      setState(res.ok ? 'done' : 'error');
+    } catch { setState('error'); }
+  };
+  if (state === 'done') {
+    return <p className={s.mailDone}>Thanks — we’ll send your print-readiness report to {email}.</p>;
+  }
+  return (
+    <form className={s.mail} onSubmit={submit}>
+      <label className={s.mailLbl} htmlFor="wipEmail">Email me this report</label>
+      <div className={s.mailRow}>
+        <input id="wipEmail" className={s.mailIn} type="email" required placeholder="you@email.com"
+          value={email} onChange={(e) => setEmail(e.target.value)} />
+        <button className={s.mailBtn} type="submit" disabled={state === 'sending'}>
+          {state === 'sending' ? 'Sending…' : 'Send it'}
+        </button>
+      </div>
+      {state === 'error' && <span className={s.mailErr}>Couldn’t send just now — try again in a moment.</span>}
+    </form>
+  );
+}
+
+// Support / donation button. Hidden until DONATE_URL is set in config.js.
+function DonateButton() {
+  if (!DONATE_URL) return null;
+  return (
+    <a className={s.donate} href={DONATE_URL} target="_blank" rel="noopener noreferrer">
+      ☕ Found this useful? Support the tool
+    </a>
   );
 }
 
@@ -211,6 +257,13 @@ export default function Result({ job, verdict, headline, sub, primary, rows, onF
         </div>
 
         <OneOhOneCta verdict={verdict} />
+
+        {(EMAIL_ENDPOINT || DONATE_URL) && (
+          <div className={s.extras}>
+            <EmailCapture job={job} verdict={verdict} />
+            <DonateButton />
+          </div>
+        )}
 
         <p className={s.disclaimer}>
           <b>Before you print:</b> Will It Print? checks and prepares your file to the best of its

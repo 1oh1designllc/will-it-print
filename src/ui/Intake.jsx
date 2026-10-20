@@ -2,6 +2,7 @@ import { useRef, useState } from 'react';
 import s from './Intake.module.css';
 import logo from '../assets/wip-logo.png';
 import { PRESETS, PRESET_GROUPS, METHOD_LABEL, presetIntent, customIntent } from './presets.js';
+import { DONATE_URL } from '../config.js';
 
 const OK_EXT = ['png', 'jpg', 'jpeg', 'tif', 'tiff', 'pdf'];
 const ext = (name) => name.split('.').pop().toLowerCase();
@@ -124,6 +125,11 @@ export default function Intake({ onAnalyze = () => {} }) {
           <button className={s.cta} disabled={!ready} onClick={analyze}>Check my file</button>
           <p className={s.note}>Your file never leaves your browser. Will It Print? is a preflight
             aid, not a guarantee — always approve a printer’s proof before production.</p>
+          {DONATE_URL && (
+            <a className={s.donate} href={DONATE_URL} target="_blank" rel="noopener noreferrer">
+              ☕ Found this useful? Support the tool
+            </a>
+          )}
         </div>
       </section>
     </main>
