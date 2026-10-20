@@ -46,6 +46,30 @@ function FitPanel({ fits, fitMode, onFitMode }) {
   );
 }
 
+// --- 1Oh1 lead CTA: context-aware by verdict. The result page is the highest-
+// intent moment (someone has a print problem right now), so the offer meets it
+// there. Copy + destination are easy to swap; links to 1Oh1 for now.
+const CTA_COPY = {
+  needs:      { lead: 'Not print-ready yet?', line: 'Send it over — 1Oh1 Design can fix the file and get it press-ready for you.', btn: 'Get it fixed by 1Oh1' },
+  fixable:    { lead: 'Almost there.', line: 'Want a pro to apply the fixes and hand back a clean, press-ready file?', btn: 'Have 1Oh1 fix it' },
+  unverified: { lead: 'Want a second set of eyes?', line: 'A designer can check what the tool couldn’t and make sure it prints right.', btn: 'Ask 1Oh1 to check it' },
+  ready:      { lead: 'Looks print-ready.', line: 'Need your next card, flyer, or poster designed right the first time?', btn: 'Work with 1Oh1 Design' },
+};
+const ONE_OH_ONE_CONTACT = 'mailto:info@1oh1designllc.com?subject=Will%20It%20Print%3F%20%E2%80%94%20help%20with%20my%20file';
+
+function OneOhOneCta({ verdict }) {
+  const c = CTA_COPY[verdict] || CTA_COPY.ready;
+  return (
+    <aside className={s.cta1oh1}>
+      <div className={s.ctaText}>
+        <b className={s.ctaLead}>{c.lead}</b>
+        <span className={s.ctaLine}>{c.line}</span>
+      </div>
+      <a className={s.ctaBtn} href={ONE_OH_ONE_CONTACT}>{c.btn}</a>
+    </aside>
+  );
+}
+
 const RotIcon = ({ dir }) => (
   <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true"
     style={dir === 'ccw' ? { transform: 'scaleX(-1)' } : undefined}>
@@ -185,6 +209,8 @@ export default function Result({ job, verdict, headline, sub, primary, rows, onF
             </div>
           </div>
         </div>
+
+        <OneOhOneCta verdict={verdict} />
 
         <p className={s.disclaimer}>
           <b>Before you print:</b> Will It Print? checks and prepares your file to the best of its

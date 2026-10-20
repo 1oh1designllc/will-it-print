@@ -142,6 +142,17 @@
 .fitHint{font-size:12.5px; color:var(--graphite); margin:12px 0 0;}
 .result :global(input):focus-visible + .fitImg{outline:2px solid var(--focus); outline-offset:2px;}
 
+/* --- 1Oh1 lead CTA (verdict-aware) --- */
+.cta1oh1{display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:14px 20px;
+  margin:26px 0 0; padding:18px 22px; border:var(--bw) solid var(--ink); border-radius:0; background:var(--sheet);}
+.ctaText{display:flex; flex-direction:column; gap:3px; min-width:0; flex:1 1 300px;}
+.ctaLead{font-size:15.5px; font-weight:800; color:var(--ink); letter-spacing:-.01em;}
+.ctaLine{font-size:13.5px; color:var(--graphite); line-height:1.5;}
+.ctaBtn{flex:0 0 auto; font:800 14px "Archivo",sans-serif; text-decoration:none; white-space:nowrap;
+  padding:12px 20px; border:2px solid var(--ink); border-radius:0; background:var(--ink); color:#fff;
+  transition:background .14s ease, transform .14s ease;}
+.ctaBtn:hover{background:#000; transform:translateY(-1px);}
+
 /* --- disclaimer --- */
 .disclaimer{margin:26px 0 0; padding:16px 20px; border:2px solid var(--ink); border-radius:0;
   background:var(--sheet); color:var(--graphite); font-size:12.5px; line-height:1.6;}
