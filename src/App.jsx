@@ -2,7 +2,6 @@ import { useState } from 'react';
 import Intake from './ui/Intake.jsx';
 import Result from './ui/Result.jsx';
 import Press from './ui/Press.jsx';
-import { SCENARIOS } from './ui/fixtures.js';
 import { toView } from './ui/present.js';
 import { parseRaster } from './parsers/raster.js';
 import { resolveRuleset } from './core/ruleset.js';
@@ -17,8 +16,6 @@ const ALL = [dimensionsChecker, bleedChecker, resolutionChecker, colorChecker];
 const ext = (name) => name.split('.').pop().toLowerCase();
 const imageType = (name) => { const e = ext(name); return e === 'png' ? 'png' : (e === 'tif' || e === 'tiff') ? 'tiff' : 'jpg'; };
 
-const NAV = ['live', 'ready', 'fixable', 'unverified', 'needs'];
-const LABEL = { live: 'Live', ready: 'Yes', fixable: 'Almost', unverified: 'Maybe', needs: 'Not yet' };
 const FONT = '"Archivo",system-ui,sans-serif';
 const PAGE = { position: 'relative', zIndex: 1, minHeight: '100vh', background: 'transparent', display: 'grid', placeItems: 'center', padding: 24, textAlign: 'center', fontFamily: FONT };
 
@@ -58,7 +55,6 @@ function download(bytes, name) {
 }
 
 export default function App() {
-  const [mode, setMode] = useState('live');
   const [stage, setStage] = useState('intake');
   const [job, setJob] = useState(null);   // { view, doc, result, source, intent }
   const [error, setError] = useState('');
@@ -167,36 +163,38 @@ export default function App() {
     }
   }
 
-  const live = mode === 'live';
   return (
     <>
       <Press />
-      <nav style={{ position: 'sticky', top: 0, zIndex: 5, display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center',
-        padding: '10px 20px', background: 'rgba(255,255,255,.82)', backdropFilter: 'blur(8px)', borderBottom: '1px solid rgba(0,0,0,.06)', fontFamily: FONT, fontSize: 12 }}>
-        <span style={{ color: '#6B6A64', letterSpacing: '.1em' }}>PREVIEW</span>
-        {NAV.map((k) => (
-          <button key={k} onClick={() => { setMode(k); if (k === 'live') reset(); }}
-            style={{ padding: '5px 10px', borderRadius: 100, cursor: 'pointer',
-              border: `1px solid ${mode === k ? '#17161A' : '#E3E1DA'}`, background: '#fff', color: mode === k ? '#17161A' : '#6B6A64' }}>
-            {LABEL[k]}
-          </button>
-        ))}
-        {live && stage !== 'intake' && (
-          <button onClick={reset} style={{ marginLeft: 'auto', padding: '5px 12px', borderRadius: 100, cursor: 'pointer',
-            border: '1px solid #17161A', background: '#fff', color: '#17161A' }}>← New file</button>
-        )}
-      </nav>
+      {stage !== 'intake' && (
+        <nav style={{ position: 'sticky', top: 0, zIndex: 5, display: 'flex', alignItems: 'center',
+          padding: '10px 20px', background: 'rgba(255,255,255,.82)', backdropFilter: 'blur(8px)',
+          borderBottom: '1px solid rgba(0,0,0,.06)', fontFamily: FONT, fontSize: 12 }}>
+          <button onClick={reset} style={{ marginLeft: 'auto', padding: '6px 14px', borderRadius: 100, cursor: 'pointer',
+            border: '1px solid #17161A', background: '#fff', color: '#17161A', fontWeight: 600 }}>← Check another file</button>
+        </nav>
+      )}
 
       {status && <div style={{ padding: '9px 20px', background: '#EAF3EE', borderBottom: '1px solid #CFE3D7',
         fontFamily: FONT, fontSize: 12, color: '#1E5B3E' }}>{status}</div>}
 
-      {!live ? <Result {...SCENARIOS[mode]} onFix={() => {}} />
-        : stage === 'intake' ? <Intake onAnalyze={handleAnalyze} />
+      {stage === 'intake' ? <Intake onAnalyze={handleAnalyze} />
         : stage === 'analyzing' ? <Panel title="Checking your file…" body="One moment." />
         : stage === 'error' ? <Panel title="Couldn't read that file" body={error} />
         : <Result {...job.view} onFix={onFix} previews={job.previews} fits={job.fits}
             fitMode={fitMode} onFitMode={setFitMode}
             rotation={rotation} onRotate={rotate} />}
+
+      <footer style={{ position: 'relative', zIndex: 1, textAlign: 'center', padding: '20px 16px 30px',
+        fontFamily: FONT, fontSize: 12.5, color: '#4A4A50', textShadow: '0 1px 6px rgba(255,255,255,.95)' }}>
+        <a href="/privacy.html" style={{ color: '#4A4A50', fontWeight: 600, textDecoration: 'none' }}>Privacy</a>
+        <span style={{ margin: '0 9px', opacity: .5 }}>·</span>
+        <a href="/terms.html" style={{ color: '#4A4A50', fontWeight: 600, textDecoration: 'none' }}>Terms</a>
+        <span style={{ margin: '0 9px', opacity: .5 }}>·</span>
+        <a href="mailto:info@1oh1designllc.com?subject=Will%20It%20Print%3F%20feedback" style={{ color: '#4A4A50', fontWeight: 600, textDecoration: 'none' }}>Feedback</a>
+        <span style={{ margin: '0 9px', opacity: .5 }}>·</span>
+        <span>© {new Date().getFullYear()} 1Oh1 Design LLC</span>
+      </footer>
 
       {showLowRes && (
         <LowResModal

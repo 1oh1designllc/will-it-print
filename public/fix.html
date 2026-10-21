@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Fix My File — Will It Print?</title>
+<meta name="description" content="Send your file and a print pro makes it press-ready — bleed, CMYK, resolution, crop marks, sizing — fast. By 1Oh1 Design." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;700;800&display=swap" rel="stylesheet" />
+<style>
+  :root{ --ink:#15161A; --graphite:#4A4A50; --hair:#E7E6E1; --yes:#1E7A4D; --bw:2.5pt; }
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; }
+  body{ font-family:"Archivo",system-ui,sans-serif; color:var(--ink); background:#fff;
+    -webkit-font-smoothing:antialiased; line-height:1.55; }
+  .wrap{ max-width:820px; margin:0 auto; padding:40px 20px 80px; }
+  .back{ display:inline-block; font-size:13px; font-weight:600; color:var(--graphite); text-decoration:none; margin-bottom:22px; }
+  .back:hover{ color:var(--ink); }
+  h1{ font-size:clamp(32px,6vw,52px); font-weight:800; letter-spacing:-.03em; line-height:1.02; margin:0 0 12px; }
+  .sub{ font-size:clamp(16px,2.2vw,19px); color:#2C2C31; max-width:60ch; margin:0 0 34px; }
+  .sub b{ color:var(--ink); }
+
+  /* main offer card */
+  .offer{ border:var(--bw) solid var(--ink); border-radius:0; padding:28px 28px 26px; }
+  .tag{ display:inline-block; font-size:11.5px; font-weight:700; letter-spacing:.14em; text-transform:uppercase;
+    background:var(--ink); color:#fff; padding:5px 10px; margin-bottom:14px; }
+  .offerName{ font-size:24px; font-weight:800; letter-spacing:-.01em; margin:0 0 4px; }
+  .price{ font-size:44px; font-weight:800; letter-spacing:-.02em; line-height:1; margin:6px 0 2px; }
+  .price span{ font-size:16px; font-weight:600; color:var(--graphite); }
+  .rush{ font-size:14px; color:var(--graphite); margin:4px 0 18px; }
+  .inc{ list-style:none; padding:0; margin:0 0 22px; }
+  .inc li{ font-size:15px; padding:6px 0 6px 26px; position:relative; }
+  .inc li::before{ content:"✓"; position:absolute; left:0; color:var(--yes); font-weight:800; }
+  .cta{ display:inline-block; width:100%; text-align:center; font:800 17px "Archivo",sans-serif;
+    padding:16px 20px; border:var(--bw) solid var(--ink); border-radius:0; background:var(--ink); color:#fff;
+    text-decoration:none; cursor:pointer; transition:background .14s ease, transform .14s ease; }
+  .cta:hover{ background:#000; transform:translateY(-1px); }
+  .reassure{ text-align:center; font-size:12.5px; color:var(--graphite); margin:12px 0 0; }
+
+  /* how it works */
+  h2{ font-size:20px; font-weight:800; letter-spacing:-.01em; margin:40px 0 16px; }
+  .steps{ display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
+  .step{ border:2px solid var(--hair); border-radius:0; padding:18px 16px; }
+  .stepNum{ font-size:13px; font-weight:800; color:#fff; background:var(--ink); width:26px; height:26px;
+    display:grid; place-items:center; border-radius:50%; margin-bottom:10px; }
+  .stepT{ font-size:15px; font-weight:700; margin:0 0 4px; }
+  .stepB{ font-size:13.5px; color:var(--graphite); margin:0; }
+
+  /* design upsell */
+  .design{ margin-top:34px; border:2px solid var(--hair); border-radius:0; padding:22px 24px; }
+  .design h3{ font-size:17px; font-weight:800; margin:0 0 6px; }
+  .design p{ font-size:14.5px; color:#2C2C31; margin:0 0 14px; }
+  .tiers{ display:flex; flex-wrap:wrap; gap:10px 22px; margin:0 0 16px; }
+  .tier{ font-size:14px; } .tier b{ font-size:15px; }
+  .ghost{ display:inline-block; font:700 14px "Archivo",sans-serif; padding:11px 18px; border:2px solid var(--ink);
+    border-radius:0; background:#fff; color:var(--ink); text-decoration:none; }
+  .ghost:hover{ background:rgba(0,0,0,.05); }
+
+  .trust{ margin-top:34px; font-size:14px; color:#2C2C31; border-left:4px solid var(--ink); padding-left:14px; }
+  .foot{ margin-top:38px; padding-top:18px; border-top:2px solid var(--hair); font-size:12.5px; color:var(--graphite); }
+  .foot a{ color:var(--graphite); }
+  @media (max-width:620px){ .steps{ grid-template-columns:1fr; } }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <a class="back" href="/">← Back to Will It Print?</a>
+
+    <h1>Fix my file.</h1>
+    <p class="sub">Send it over and I'll make it <b>press-ready</b> — bleed, CMYK, resolution, crop marks, and sizing handled — then hand back a print-ready PDF. Done by a designer with <b>20+ years in real print production</b>, not a bot.</p>
+
+    <div class="offer">
+      <span class="tag">Most popular</span>
+      <p class="offerName">Will It Print? Fix</p>
+      <div class="price">$49<span> / file</span></div>
+      <p class="rush">Need it today? Add <b>Rush (+$29)</b> for same-day turnaround.</p>
+      <ul class="inc">
+        <li>Bleed added correctly for your size</li>
+        <li>Converted to CMYK so colors print true</li>
+        <li>Crop marks + correct trim size</li>
+        <li>Resolution checked and flagged (so you're not surprised)</li>
+        <li>Returned as a clean, press-ready PDF</li>
+      </ul>
+      <a id="payBtn" class="cta" href="#">Start my $49 fix →</a>
+      <p class="reassure">Fast turnaround (usually within 1 business day). Questions first? <a href="mailto:info@1oh1designllc.com?subject=Will%20It%20Print%3F%20fix%20question">Email me</a>.</p>
+    </div>
+
+    <h2>How it works</h2>
+    <div class="steps">
+      <div class="step">
+        <div class="stepNum">1</div>
+        <p class="stepT">Start your fix</p>
+        <p class="stepB">Pay for the $49 fix (add Rush if you need it today).</p>
+      </div>
+      <div class="step">
+        <div class="stepNum">2</div>
+        <p class="stepT">Send your file</p>
+        <p class="stepB">Email your artwork + the size/qty you're printing to info@1oh1designllc.com.</p>
+      </div>
+      <div class="step">
+        <div class="stepNum">3</div>
+        <p class="stepT">Get it back print-ready</p>
+        <p class="stepB">I send back a press-ready PDF you can hand straight to your printer.</p>
+      </div>
+    </div>
+
+    <div class="design">
+      <h3>Need it designed, not just fixed?</h3>
+      <p>If the file isn't there yet — or you want it done right from scratch — I design too.</p>
+      <div class="tiers">
+        <span class="tier"><b>$75</b> — Basic (text + color backgrounds)</span>
+        <span class="tier"><b>$200</b> — Custom (images, recreated from your idea)</span>
+        <span class="tier"><b>$450+</b> — Logos &amp; similar</span>
+      </div>
+      <a class="ghost" href="mailto:info@1oh1designllc.com?subject=1Oh1%20Design%20quote">Get a design quote →</a>
+    </div>
+
+    <p class="trust"><b>Made by 1Oh1 Design LLC (dba ONE ZERO ONE).</b> Two decades of print production — bleeds, imposition, color, finishing. If something about your file isn't right for print, I'll tell you straight.</p>
+
+    <p class="foot">
+      <a href="/">Will It Print?</a> · <a href="/privacy.html">Privacy</a> · <a href="/terms.html">Terms</a>
+      · © 2026 1Oh1 Design LLC
+    </p>
+  </div>
+
+  <script>
+    // ── Payment link ───────────────────────────────────────────────
+    // Paste your Stripe Payment Link below once you've created it
+    // (Stripe Dashboard → Payment Links → create a $49 "Will It Print? Fix").
+    // While it's blank, the button opens an email to start the fix instead.
+    var FIX_PAY_LINK = "";
+
+    (function () {
+      var btn = document.getElementById("payBtn");
+      if (FIX_PAY_LINK) {
+        btn.href = FIX_PAY_LINK;
+        btn.textContent = "Pay $49 & start my fix →";
+      } else {
+        btn.href = "mailto:info@1oh1designllc.com?subject=Will%20It%20Print%3F%20%E2%80%94%20%2449%20fix&body=Hi%2C%20I%27d%20like%20the%20%2449%20print-ready%20fix.%20My%20file%20is%20attached%2C%20and%20I%27m%20printing%20at%3A%20%5Bsize%20%2B%20quantity%5D.";
+        btn.textContent = "Start my $49 fix →";
+      }
+    })();
+  </script>
+</body>
+</html>

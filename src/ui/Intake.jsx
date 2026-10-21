@@ -37,21 +37,24 @@ export default function Intake({ onAnalyze = () => {} }) {
 
   return (
     <main className={s.stage}>
-      <header className={s.top}>
-        <div className={s.logoBox}>
-          <img className={s.logo} src={logo} alt="Will It Print?" />
-          <span className={s.by}>by 1Oh1 Design</span>
-        </div>
-      </header>
-
-      <section className={s.hero}>
-        <div className={s.heroBox}>
+      <div className={s.wrap}>
+        <section className={`${s.panel} ${s.hero}`}>
           <h1 className={s.h1}>Will your file print?</h1>
           <p className={s.sub}>Drop in your artwork, get a plain-English verdict, and download it
             press-ready — right here in your browser.</p>
-        </div>
+        </section>
 
-        <div className={s.card}>
+        <section className={`${s.panel} ${s.inp}`}>
+          <div className={s.hdrRow}>
+            <img className={s.logo} src={logo} alt="Will It Print?" />
+            <div className={s.badges}>
+              <span className={s.badge}><b>✓</b> Free to use</span>
+              <span className={s.badge}><b>✓</b> 100% private</span>
+              <span className={s.badge}><b>✓</b> ~10-second check</span>
+            </div>
+          </div>
+
+          <div className={s.card}>
           <div
             className={`${s.drop} ${drag ? s.dropOn : ''} ${file ? s.hasFile : ''}`}
             onClick={() => input.current.click()}
@@ -130,8 +133,9 @@ export default function Intake({ onAnalyze = () => {} }) {
               ☕ Found this useful? Support the tool
             </a>
           )}
-        </div>
-      </section>
+          </div>
+        </section>
+      </div>
     </main>
   );
 }

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import s from './Result.module.css';
-import { ONE_OH_ONE_CONTACT, DONATE_URL, EMAIL_ENDPOINT } from '../config.js';
+import { ONE_OH_ONE_CONTACT, DONATE_URL, EMAIL_ENDPOINT, PRINT_PARTNER_NAME, PRINT_PARTNER_URL } from '../config.js';
 
 const TONE = { ready: '--yes', fixable: '--almost', unverified: '--maybe', needs: '--no' };
 const ST = { pass: '--yes', warn: '--almost', unverified: '--maybe', fail: '--no' };
@@ -103,6 +103,27 @@ function EmailCapture({ job, verdict }) {
       </div>
       {state === 'error' && <span className={s.mailErr}>Couldn’t send just now — try again in a moment.</span>}
     </form>
+  );
+}
+
+// "Get it printed" — shown on ready/almost verdicts (the file is, or is about
+// to be, press-ready). Affiliate/referral to a trusted printer. Hidden until
+// PRINT_PARTNER_URL is set in config.js.
+function PrintPartner({ verdict }) {
+  if (!PRINT_PARTNER_URL || !(verdict === 'ready' || verdict === 'fixable')) return null;
+  const ready = verdict === 'ready';
+  return (
+    <aside className={s.printCta}>
+      <div className={s.printText}>
+        <b className={s.printLead}>{ready ? 'Ready to print?' : 'Fixed and ready to print?'}</b>
+        <span className={s.printLine}>
+          Send your press-ready file to {PRINT_PARTNER_NAME} and get it printed right.
+        </span>
+      </div>
+      <a className={s.printBtn} href={PRINT_PARTNER_URL} target="_blank" rel="noopener noreferrer">
+        Get it printed →
+      </a>
+    </aside>
   );
 }
 
@@ -257,6 +278,7 @@ export default function Result({ job, verdict, headline, sub, primary, rows, onF
         </div>
 
         <OneOhOneCta verdict={verdict} />
+        <PrintPartner verdict={verdict} />
 
         {(EMAIL_ENDPOINT || DONATE_URL) && (
           <div className={s.extras}>
