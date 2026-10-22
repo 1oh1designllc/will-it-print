@@ -47,11 +47,20 @@ export function resolveBoxes(raw, intent) {
   const cropTrim = toRect(raw.crop);
   const declaredBleed = toRect(raw.bleed);
 
-  const trim = declaredTrim ?? cropTrim ?? centerIntent(media, intent);
+  // A CropBox equal to the MediaBox is just the whole page (incl. bleed), NOT a
+  // trim region — the common Canva/InDesign export case. Only trust CropBox as
+  // the trim when it's actually inset from the page. Otherwise infer the ordered
+  // trim centered in the media, so a trim-with-bleed page reads as the RIGHT size
+  // WITH bleed present, instead of looking oversized with no bleed.
+  const cropTol = 1; // points (~0.35mm) — absorbs rounding
+  const cropIsInset = !!cropTrim && (
+    cropTrim.width < media.width - cropTol || cropTrim.height < media.height - cropTol
+  );
+  const trim = declaredTrim ?? (cropIsInset ? cropTrim : centerIntent(media, intent));
   const bleed = declaredBleed ?? media; // media is the file's outer edge
   const inferred = !(raw.trim && raw.bleed); // we filled at least one box
 
-  return { media, trim, bleed, inferred, usedCropAsTrim: !raw.trim && !!raw.crop };
+  return { media, trim, bleed, inferred, usedCropAsTrim: !raw.trim && cropIsInset };
 }
 
 /**

@@ -59,6 +59,13 @@ const fixtures = [
   { label: 'CropBox used as trim',
     raw: { media: BLEED_OK, trim: null, crop: TRIM, bleed: BLEED_OK, colorSpace: cmyk },
     model: { inferred: true, trimW: 252 }, expectVerdict: Verdict.READY },
+
+  // Regression: a file exported with bleed but no TrimBox, whose CropBox equals
+  // the full (bleed-inclusive) page — the common Canva/InDesign case. Must read
+  // as the ORDERED trim size WITH bleed present, not an oversized page.
+  { label: 'CropBox == MediaBox (full bleed page, no TrimBox)',
+    raw: { media: BLEED_OK, trim: null, crop: BLEED_OK, bleed: null, colorSpace: cmyk },
+    model: { inferred: true, trimW: 252 }, expectVerdict: Verdict.READY },
 ];
 
 const icon = { pass: '✓', warn: '!', unverified: '?', fail: '✗' };
