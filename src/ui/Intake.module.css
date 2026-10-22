@@ -15,14 +15,16 @@
   animation:rise .6s cubic-bezier(.2,.7,.2,1) both;}
 @keyframes rise{from{opacity:0; transform:translateY(16px);} to{opacity:1; transform:none;}}
 
-/* LEFT — the question (hugs the text, little trailing white space) */
-.hero{flex:1 1 auto; min-width:0; padding:clamp(30px,4vw,52px) clamp(26px,4vw,54px);}
-.h1{font-weight:800; letter-spacing:-.03em; line-height:1.0; margin:0; font-size:clamp(40px,6vw,80px);}
-.sub{margin:22px 0 0; max-width:50ch; font-size:clamp(16px,1.6vw,20px); line-height:1.5;
-  color:#2C2C31; font-weight:600; text-wrap:balance;}
+/* LEFT — the question: compact, headline sized to the sub width, equal padding
+   all around so the box hugs the text evenly left and right. */
+.hero{flex:0 1 auto; min-width:0; padding:clamp(28px,3vw,40px);}
+.h1{font-weight:800; letter-spacing:-.03em; line-height:1.02; margin:0;
+  max-width:340px; font-size:clamp(30px,3.4vw,42px);}
+.sub{margin:18px 0 0; max-width:340px; font-size:clamp(15px,1.4vw,16.5px); line-height:1.5;
+  color:#2C2C31; font-weight:600;}
 
-/* RIGHT — the inputs (wider, frosted); logo + trust badges in the header */
-.inp{flex:0 0 600px; max-width:100%; padding:24px 28px 22px;}
+/* RIGHT — the inputs: fill the reclaimed space (the important part) */
+.inp{flex:1 1 auto; min-width:0; padding:24px 28px 22px;}
 .hdrRow{display:flex; align-items:center; justify-content:space-between; gap:18px;
   margin-bottom:20px; padding-bottom:18px; border-bottom:2px solid var(--hair);}
 .logo{width:clamp(132px,15vw,152px); height:auto; display:block;}
