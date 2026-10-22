@@ -25,10 +25,17 @@ import { cropMarks, MARK_LEN } from './plan.js';
 
 const DEFAULT_BLEED = 9; // pt (0.125in)
 
-// Existing bleed inset a source declares (trim inset from bleed), or 0.
+// How much REAL bleed the source carries: the smallest inset of the trim
+// inside the bleed box (falling back to the media/page box). Artwork past the
+// cut is real whether the trim was DECLARED or INFERRED — an 8.5×11 ordered on
+// an 8.75×11.25 page genuinely bleeds, it's just missing crop marks. So we read
+// geometry, not the inferred flag: when the page extends past the trim we KEEP
+// that artwork and only add crop marks, and fake-stretch bleed only when the
+// page actually stops at the trim (no overrun to keep).
 function existingBleed(boxes) {
-  if (!boxes.bleed || !boxes.trim || boxes.inferred) return 0;
-  const t = boxes.trim, b = boxes.bleed;
+  const t = boxes.trim;
+  const b = boxes.bleed ?? boxes.media;
+  if (!t || !b) return 0;
   const inset = Math.min(t.x - b.x, t.y - b.y,
     (b.x + b.width) - (t.x + t.width), (b.y + b.height) - (t.y + t.height));
   return inset > 0 ? inset : 0;
@@ -163,6 +170,7 @@ export async function renderPrintReadyPdf(sourceBytes, doc, { markLen = MARK_LEN
 
   if (useFit) notes.push(`Scaled to the ordered size (${fit}). Crop marks and bleed added.`);
   else if (addedBleedMargin) notes.push('Bleed and crop marks added — the edge was stretched outward to fill the bleed, the way a designer fakes it. Check the result; for critical edges, extend your real artwork instead.');
+  else notes.push('Crop marks added and trim/bleed boxes written. Your file already carried enough bleed, so your artwork is left untouched — it just needed the marks.');
   notes.push('Colours are unchanged from your file. If this press needs CMYK, convert in your design app before printing.');
 
   return { bytes: await out.save(), notes };
