@@ -40,5 +40,8 @@ export const presetIntent = (p) =>
 
 export const customIntent = (c) => {
   const f = U[c.unit];
-  return intent(+c.w * f, +c.h * f, c.method, (+c.bleed || 0) * f, 'custom', +c.sides, +c.qty);
+  // Custom size only collects what affects the file check (size + bleed).
+  // Method/sides/qty are order details, not checks — default to the strict
+  // offset profile (300 dpi target / CMYK) so the custom verdict is cautious.
+  return intent(+c.w * f, +c.h * f, 'offset', (+c.bleed || 0) * f, 'custom');
 };

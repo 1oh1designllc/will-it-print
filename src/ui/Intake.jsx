@@ -12,7 +12,7 @@ export default function Intake({ onAnalyze = () => {} }) {
   const [err, setErr] = useState('');
   const [drag, setDrag] = useState(false);
   const [sel, setSel] = useState('poster-11x17'); // preset key or 'custom'
-  const [custom, setCustom] = useState({ w: '', h: '', unit: 'in', method: 'offset', bleed: '0.125', sides: 2, qty: 100 });
+  const [custom, setCustom] = useState({ w: '', h: '', unit: 'in', bleed: '0.125' });
   const input = useRef(null);
 
   const take = (f) => {
@@ -108,18 +108,8 @@ export default function Intake({ onAnalyze = () => {} }) {
                   <label className={s.f}><span>Unit</span>
                     <select className={s.in} value={custom.unit} onChange={(e) => setC('unit', e.target.value)}>
                       <option value="in">in</option><option value="mm">mm</option></select></label>
-                </div>
-                <div className={s.crow}>
-                  <label className={s.f}><span>Method</span>
-                    <select className={s.in} value={custom.method} onChange={(e) => setC('method', e.target.value)}>
-                      {Object.entries(METHOD_LABEL).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select></label>
                   <label className={s.f}><span>Bleed ({custom.unit})</span>
                     <input className={s.in} type="number" value={custom.bleed} onChange={(e) => setC('bleed', e.target.value)} /></label>
-                  <label className={s.f}><span>Sides</span>
-                    <select className={s.in} value={custom.sides} onChange={(e) => setC('sides', e.target.value)}>
-                      <option value={1}>1</option><option value={2}>2</option></select></label>
-                  <label className={s.f}><span>Qty</span>
-                    <input className={s.in} type="number" value={custom.qty} onChange={(e) => setC('qty', e.target.value)} /></label>
                 </div>
               </div>
             )}
