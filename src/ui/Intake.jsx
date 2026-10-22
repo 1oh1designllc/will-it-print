@@ -40,8 +40,8 @@ export default function Intake({ onAnalyze = () => {} }) {
       <div className={s.wrap}>
         <section className={`${s.panel} ${s.hero}`}>
           <h1 className={s.h1}>Will your file print?</h1>
-          <p className={s.sub}>Drop in your artwork, get a plain-English verdict, and download it
-            press-ready — right here in your browser.</p>
+          <p className={s.sub}>Drop in your artwork, get a plain&#8209;English verdict, and
+            download it press&#8209;ready — right here in your browser.</p>
         </section>
 
         <section className={`${s.panel} ${s.inp}`}>

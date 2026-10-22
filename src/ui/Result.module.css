@@ -116,7 +116,8 @@
 .pager{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:auto;}
 .pagerBtn{font:600 13px "Archivo",sans-serif; padding:8px 14px; border:2px solid var(--ink);
   background:#fff; color:var(--ink); cursor:pointer; border-radius:0;}
-.pagerBtn:hover{background:rgba(0,0,0,.05);}
+.pagerBtn:hover{background:#fff; border-color:#000;}
+.pagerBtn:disabled{opacity:.4; cursor:default;}
 .pagerNum{font-size:13px; color:var(--graphite); font-variant-numeric:tabular-nums;}
 
 /* --- fit panel --- */

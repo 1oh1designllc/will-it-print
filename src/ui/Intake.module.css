@@ -18,8 +18,8 @@
 /* LEFT — the question (hugs the text, little trailing white space) */
 .hero{flex:1 1 auto; min-width:0; padding:clamp(30px,4vw,52px) clamp(26px,4vw,54px);}
 .h1{font-weight:800; letter-spacing:-.03em; line-height:1.0; margin:0; font-size:clamp(40px,6vw,80px);}
-.sub{margin:22px 0 0; max-width:34ch; font-size:clamp(16px,1.6vw,20px); line-height:1.5;
-  color:#2C2C31; font-weight:600;}
+.sub{margin:22px 0 0; max-width:50ch; font-size:clamp(16px,1.6vw,20px); line-height:1.5;
+  color:#2C2C31; font-weight:600; text-wrap:balance;}
 
 /* RIGHT — the inputs (wider, frosted); logo + trust badges in the header */
 .inp{flex:0 0 600px; max-width:100%; padding:24px 28px 22px;}
