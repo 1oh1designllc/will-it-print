@@ -66,6 +66,14 @@ const fixtures = [
   { label: 'CropBox == MediaBox (full bleed page, no TrimBox)',
     raw: { media: BLEED_OK, trim: null, crop: BLEED_OK, bleed: null, colorSpace: cmyk },
     model: { inferred: true, trimW: 252 }, expectVerdict: Verdict.READY },
+
+  // Regression: an Illustrator/InDesign export where EVERY box equals the full
+  // bled page (Trim==Crop==Bleed==Media) with the bleed baked into the art.
+  // A declared TrimBox that equals the page is not a real cut line — infer the
+  // ordered trim and read the overrun as bleed. (Real-world: Comedy Show trifold.)
+  { label: 'all boxes == MediaBox (baked bleed, bogus TrimBox)',
+    raw: { media: BLEED_OK, trim: BLEED_OK, crop: BLEED_OK, bleed: BLEED_OK, colorSpace: cmyk },
+    model: { inferred: true, trimW: 252 }, expectVerdict: Verdict.READY },
 ];
 
 const icon = { pass: '✓', warn: '!', unverified: '?', fail: '✗' };

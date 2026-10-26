@@ -124,7 +124,11 @@ export async function renderPrintReadyPdf(sourceBytes, doc, { markLen = MARK_LEN
     const trim = boxes.trim ?? media;             // source finished-size rect
     const have = existingBleed(boxes);
     const B = Math.max(required, have);
-    if (have < required) addedBleedMargin = true;
+    // Tolerance so a bleed that's present but off by a rounding sliver (float
+    // math, a ~0.1pt box origin) still counts as real — don't fake-stretch it.
+    const BLEED_TOL = 0.75; // pt (~0.26mm)
+    const needFake = have < required - BLEED_TOL;
+    if (needFake) addedBleedMargin = true;
 
     // Output trim = ordered size when fitting, else the source trim (1:1).
     const Tw = useFit ? OT.width : trim.width;
@@ -135,7 +139,7 @@ export async function renderPrintReadyPdf(sourceBytes, doc, { markLen = MARK_LEN
 
     if (!useFit) {
       const dx = m - (trim.x - media.x), dy = m - (trim.y - media.y);
-      if (have < required) {
+      if (needFake) {
         const tl = trim.x - media.x, tb = trim.y - media.y;
         fakeBleed(page, ep, { m, B, tl, tb, tw: trim.width, th: trim.height, dx, dy });
       }
