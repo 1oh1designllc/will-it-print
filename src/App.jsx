@@ -1,7 +1,14 @@
 import { useState } from 'react';
 import Intake from './ui/Intake.jsx';
 import Result from './ui/Result.jsx';
+import ResultV2 from './ui/ResultV2.jsx';
 import Press from './ui/Press.jsx';
+
+// Opt-in to the new slide-in results page with ?ui=v2 (default stays Result,
+// so the live site is unchanged for visitors — easy to test and revert).
+let USE_V2 = false;
+try { USE_V2 = new URLSearchParams(window.location.search).get('ui') === 'v2'; } catch { /* ignore */ }
+const ResultView = USE_V2 ? ResultV2 : Result;
 import { toView } from './ui/present.js';
 import { parseRaster } from './parsers/raster.js';
 import { resolveRuleset } from './core/ruleset.js';
@@ -181,7 +188,7 @@ export default function App() {
       {stage === 'intake' ? <Intake onAnalyze={handleAnalyze} />
         : stage === 'analyzing' ? <Panel title="Checking your file…" body="One moment." />
         : stage === 'error' ? <Panel title="Couldn't read that file" body={error} />
-        : <Result {...job.view} onFix={onFix} previews={job.previews} fits={job.fits}
+        : <ResultView {...job.view} onFix={onFix} previews={job.previews} fits={job.fits}
             fitMode={fitMode} onFitMode={setFitMode}
             rotation={rotation} onRotate={rotate} />}
 
