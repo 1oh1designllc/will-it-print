@@ -73,7 +73,7 @@ function EmailCapture({ job, verdict }) {
 }
 
 export default function ResultV2({ job, verdict, headline, sub, primary, rows, onFix, onReset,
-  previews, fits, fitMode, onFitMode, rotation = 0, onRotate, shop = null }) {
+  previews, fits, fitMode, onFitMode, rotation = 0, onRotate, shop = null, headsUp = 0 }) {
   const tone = TONE[verdict] || TONE.ready;
   const needsFit = !!fits && rows.some((r) => r.chooseFit);
   const hasPreview = !!previews && previews.length > 0;
@@ -90,7 +90,9 @@ export default function ResultV2({ job, verdict, headline, sub, primary, rows, o
         <div className={s.leftIn}>
           <p className={s.eyebrow}>Proof · <b>{shop ? shop.name : 'will it print?'}</b></p>
           <h1 className={s.headline}>{headline}</h1>
-          <p className={s.subline}>{sub}</p>
+          {verdict === 'ready' && headsUp > 0
+            ? <p className={s.subHeads}><span className={s.subHeadsDot}>!</span>{sub}</p>
+            : <p className={s.subline}>{sub}</p>}
           <button className={`${s.primary} ${primary.kind === 'ghost' ? s.ghost : ''}`} onClick={onFix}>{primary.label}</button>
           {primary.count && <span className={s.count}>{primary.count}</span>}
           {onReset && <button className={s.reset} onClick={onReset}>← Check another file</button>}

@@ -112,7 +112,14 @@ function collapse(rawRows) {
 }
 
 const BANNER = {
-  ready: () => ({ headline: 'Yes — this’ll print.', sub: 'Everything checks out. Your file is good to go.', primary: { label: 'Download print-ready file', kind: 'solid' } }),
+  // READY splits on whether there are advisory heads-ups (warnings). With none,
+  // it's a clean all-clear; with some, we stay positive but name the count so the
+  // amber rows below aren't a surprise, and the sub renders as an amber note.
+  ready: (n) => n.warn > 0
+    ? { headline: n.warn === 1 ? 'Yes — it’ll print, with one heads-up.' : `Yes — it’ll print, with ${n.warn} heads-ups.`,
+        sub: `Nothing’s blocking — just look over the ${n.warn === 1 ? 'note' : 'notes'} below before you send.`,
+        primary: { label: 'Download print-ready file', kind: 'solid' } }
+    : { headline: 'Yes — this’ll print.', sub: 'Everything checks out. Your file is good to go.', primary: { label: 'Download print-ready file', kind: 'solid' } },
   fixable: (n) => ({ headline: `Almost — ${n.fix} ${n.fix === 1 ? 'fix' : 'fixes'} to go.`, sub: `We can fix ${n.fix === 1 ? 'it' : 'them'} for you in one tap.`, primary: { label: 'Fix everything I can', kind: 'solid', count: `${n.fix} ${n.fix === 1 ? 'fix' : 'fixes'}` } }),
   unverified: (n) => ({ headline: 'Maybe. Something we couldn’t check.', sub: `Nothing failed, but ${n.unv} ${n.unv === 1 ? 'check' : 'checks'} couldn’t run.`, primary: { label: 'Review what we couldn’t check', kind: 'ghost' } }),
   needs: (n) => ({ headline: 'Not yet. This needs a change.', sub: `${n.block} thing${n.block === 1 ? '' : 's'} need a change to your file first.`, primary: { label: 'See what needs changing', kind: 'ghost' } }),
@@ -130,6 +137,7 @@ export function toView({ verdict, findings }, meta = {}) {
     fix: rows.filter((r) => !!r.fix).length,
     block: rows.filter((r) => r.status === 'fail' && !r.fix).length,
     unv: rows.filter((r) => r.status === 'unverified').length,
+    warn: rows.filter((r) => r.status === 'warn').length, // advisory heads-ups
   };
   const b = BANNER[vkey](n);
   // Low-resolution blocker: let the user download anyway behind a warning modal.
@@ -141,5 +149,6 @@ export function toView({ verdict, findings }, meta = {}) {
   const job = it
     ? { file: meta.filename || 'artwork', size: `${(it.trimSize.width / 72).toFixed(2)} × ${(it.trimSize.height / 72).toFixed(2)} in`, method: METHOD_LABEL[it.printMethod] || it.printMethod, qty: `× ${it.quantity}` }
     : (meta.job || { file: 'artwork', size: '', method: '', qty: '' });
-  return { job, verdict: vkey, headline: b.headline, sub: b.sub, primary, rows, lowRes };
+  const headsUp = vkey === 'ready' ? n.warn : 0; // amber-note count for the ready state
+  return { job, verdict: vkey, headline: b.headline, sub: b.sub, primary, rows, lowRes, headsUp };
 }
