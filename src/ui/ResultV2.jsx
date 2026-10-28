@@ -104,10 +104,12 @@ export default function ResultV2({ job, verdict, headline, sub, primary, rows, o
             <span className={s.verdict}><b>{ICON[verdict === 'needs' ? 'fail' : verdict === 'ready' ? 'pass' : verdict === 'fixable' ? 'warn' : 'unverified']}</b> {VERDICT_PILL[verdict]}</span>
           </div>
 
-          <div className={s.actions}>
-            <button className={`${s.btn} ${primary.kind === 'ghost' ? '' : s.solid}`} onClick={onFix}>{primary.label}</button>
-            {showPrint && <a className={`${s.btn} ${s.print}`} href={PRINT_PARTNER_URL} target="_blank" rel="noopener noreferrer">Get it printed →</a>}
-          </div>
+          {/* Primary action lives only in the sticky left panel now — no duplicate here. */}
+          {showPrint && (
+            <div className={s.actions}>
+              <a className={`${s.btn} ${s.print}`} href={PRINT_PARTNER_URL} target="_blank" rel="noopener noreferrer">Get it printed →</a>
+            </div>
+          )}
 
           <div className={s.previewWrap}>
             <p className={s.pvLabel}>Preview</p>

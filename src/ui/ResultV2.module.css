@@ -6,12 +6,14 @@
   --ink:#15161A; --muted:#71727B; --line:#E8E7E2; --line-soft:#F0EFEA; --card:#fff;
   --yes:#1E7A4D; --amber:#B9791C; --grey:#6B6C74; --no:#C33C33;
   --cyan:#00AEEF; --magenta:#EC008C;
-  position:relative; z-index:2; min-height:100vh; overflow-x:clip;
+  position:relative; z-index:2; min-height:100vh;
   font-family:"Archivo",system-ui,sans-serif; color:var(--ink);
-  display:flex; align-items:stretch; gap:0;
+  display:flex; align-items:flex-start; gap:0;
 }
-.left{flex:1 1 46%; min-width:0; display:flex; align-items:center;
-  padding:clamp(24px,5vh,56px) clamp(16px,4vw,52px);}
+/* left verdict panel pins to the top and stays as the report scrolls */
+.left{flex:1 1 46%; min-width:0; align-self:flex-start; position:sticky; top:44px;
+  display:flex; align-items:flex-start;
+  padding:clamp(18px,4vh,36px) clamp(16px,4vw,52px);}
 .leftIn{background:rgba(255,255,255,.85); backdrop-filter:blur(7px); -webkit-backdrop-filter:blur(7px);
   border:1px solid rgba(255,255,255,.85); box-shadow:0 26px 64px rgba(20,20,35,.22);
   padding:clamp(24px,3vw,38px); max-width:506px; width:100%;}
@@ -39,12 +41,11 @@
 .pTitle{font-family:"Archivo",sans-serif; font-weight:800; letter-spacing:-.02em;
   font-size:clamp(20px,2.3vw,28px); line-height:1.1; margin:0; overflow-wrap:anywhere;}
 .pSub{margin:6px 0 0; font-size:13px; color:var(--muted); font-weight:600;}
-.verdict{flex:0 0 auto; display:inline-flex; align-items:center; gap:7px; font-weight:800; font-size:13px;
-  padding:8px 13px; border-radius:999px; white-space:nowrap;
-  background:color-mix(in srgb,var(--tone) 12%,#fff); color:var(--tone);
-  border:1.5px solid color-mix(in srgb,var(--tone) 32%,#fff);}
+/* plain coloured text, no bubble */
+.verdict{flex:0 0 auto; display:inline-flex; align-items:center; gap:6px; font-weight:800; font-size:14px;
+  white-space:nowrap; color:var(--tone);}
 
-.actions{display:flex; align-items:center; gap:10px; margin:22px 0 24px; flex-wrap:wrap;}
+.actions{display:flex; align-items:center; gap:10px; margin:18px 0 0; flex-wrap:wrap;}
 .btn{appearance:none; cursor:pointer; font-family:"Archivo",sans-serif; font-weight:800; font-size:14px;
   padding:12px 17px; border-radius:0; border:2px solid var(--ink); background:#fff; color:var(--ink);
   display:inline-flex; align-items:center; gap:8px; transition:background .14s ease;}
@@ -56,7 +57,7 @@
 
 /* preview — centered focal block (the checks live in the list below, so the
    top of the panel is just the file proof, not a duplicate of the checks) */
-.previewWrap{margin-top:6px; display:flex; flex-direction:column; align-items:center;}
+.previewWrap{margin-top:18px; display:flex; flex-direction:column; align-items:center;}
 .pvLabel{font-size:11px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); margin:0 0 8px; align-self:flex-start;}
 .previewWrap .pvLabel{align-self:center;}
 .preview{border:1px solid var(--line); border-radius:0; overflow:hidden; background:#fbfbf9; width:100%; max-width:440px;}
@@ -111,7 +112,7 @@
 
 @media (max-width:860px){
   .v2{flex-direction:column;}
-  .left{flex:none;} .right{flex:none;}
+  .left{flex:none; position:static; top:auto;} .right{flex:none;}
   .panel{max-width:none; animation:slideUp .5s cubic-bezier(.22,.7,.2,1) both;}
   .split{grid-template-columns:1fr;}
   @keyframes slideUp{from{transform:translateY(24px); opacity:.4;} to{transform:translateY(0); opacity:1;}}
