@@ -8,7 +8,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "node tests/harness.js && node tests/raster-harness.js && node tests/pdf-model-harness.js && node tests/present-harness.js && node tests/fix-harness.js && node tests/pdf-harness.js && node tests/fix-pdf-harness.js"
+    "test": "node tests/harness.js && node tests/raster-harness.js && node tests/pdf-model-harness.js && node tests/present-harness.js && node tests/fix-harness.js && node tests/pdf-harness.js && node tests/fix-pdf-harness.js && node tests/fonts-harness.js"
   },
   "dependencies": {
     "pdf-lib": "^1.17.1",

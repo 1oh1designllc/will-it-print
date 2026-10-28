@@ -93,6 +93,81 @@ function reduceColor(set) {
   return ColorSpace.UNKNOWN;
 }
 
+// --- Font embedding ---------------------------------------------------------
+// A font is embedded when its descriptor carries the font program
+// (FontFile / FontFile2 / FontFile3); Type3 fonts define their glyphs inline.
+// The 14 standard base fonts have no descriptor — the RIP has them, so a
+// non-embedded standard font is a minor heads-up, a non-embedded custom one a
+// real substitution risk.
+const STD14 = new Set([
+  'Helvetica', 'Helvetica-Bold', 'Helvetica-Oblique', 'Helvetica-BoldOblique',
+  'Courier', 'Courier-Bold', 'Courier-Oblique', 'Courier-BoldOblique',
+  'Times-Roman', 'Times-Bold', 'Times-Italic', 'Times-BoldItalic',
+  'Symbol', 'ZapfDingbats',
+]);
+
+// Strip a subset prefix ("ABCDEF+") and the leading slash from a BaseFont name.
+const baseName = (bf) => {
+  const n = (bf || '').replace(/^\//, '');
+  return (n.length > 7 && n[6] === '+') ? n.slice(7) : n;
+};
+
+function collectFonts(resources, ctx, out, seen) {
+  if (!resources) return;
+  const fontDict = ctx.lookupMaybe(resources.get(PDFName.of('Font')), PDFDict);
+  if (fontDict) {
+    for (const [, ref] of fontDict.entries()) {
+      try {
+        const f = ctx.lookup(ref);
+        if (!(f instanceof PDFDict)) continue;
+        const sub = f.get(PDFName.of('Subtype'));
+        const subName = sub instanceof PDFName ? sub.asString() : '';
+        const bf = f.get(PDFName.of('BaseFont'));
+        const base = baseName(bf instanceof PDFName ? bf.asString() : '');
+        let descriptor = null;
+        if (subName === '/Type0') {
+          const desc = ctx.lookupMaybe(f.get(PDFName.of('DescendantFonts')), PDFArray);
+          const d0 = desc && desc.size() ? ctx.lookup(desc.get(0)) : null;
+          descriptor = d0 instanceof PDFDict ? ctx.lookupMaybe(d0.get(PDFName.of('FontDescriptor')), PDFDict) : null;
+        } else {
+          descriptor = ctx.lookupMaybe(f.get(PDFName.of('FontDescriptor')), PDFDict);
+        }
+        const hasFile = !!descriptor && !!(
+          descriptor.get(PDFName.of('FontFile')) ||
+          descriptor.get(PDFName.of('FontFile2')) ||
+          descriptor.get(PDFName.of('FontFile3'))
+        );
+        const embedded = hasFile || subName === '/Type3';
+        out.push({ name: base || '(unnamed)', embedded, standard: STD14.has(base) });
+      } catch { /* skip this font */ }
+    }
+  }
+  // Recurse into Form XObjects (their own font resources).
+  const xobjs = ctx.lookupMaybe(resources.get(PDFName.of('XObject')), PDFDict);
+  if (xobjs) {
+    for (const [, ref] of xobjs.entries()) {
+      if (seen.has(ref)) continue; seen.add(ref);
+      const xo = ctx.lookup(ref);
+      const dict = xo?.dict || xo;
+      if (!(dict instanceof PDFDict)) continue;
+      const st = dict.get(PDFName.of('Subtype'));
+      if ((st instanceof PDFName ? st.asString() : '') === '/Form') {
+        collectFonts(ctx.lookupMaybe(dict.get(PDFName.of('Resources')), PDFDict), ctx, out, seen);
+      }
+    }
+  }
+}
+
+// Unique fonts used by one page (dedup by name + embedded flag).
+function pageFonts(page, ctx) {
+  const raw = [];
+  try { collectFonts(ctx.lookupMaybe(page.node.get(PDFName.of('Resources')), PDFDict), ctx, raw, new Set()); }
+  catch { /* leave empty */ }
+  const seen = new Set(), uniq = [];
+  for (const f of raw) { const k = `${f.name}|${f.embedded}`; if (!seen.has(k)) { seen.add(k); uniq.push(f); } }
+  return uniq;
+}
+
 /**
  * @param {ArrayBuffer|Uint8Array} data
  * @param {string} filename
@@ -115,6 +190,8 @@ export async function parsePdf(data, filename, intent) {
       colorSpace: ColorSpace.UNKNOWN,
       imagesKnown: false,                    // set true below once DPI is read
       hasVector: true,
+      fonts: pageFonts(p, ctx),              // embedded-font check
+      fontsKnown: true,
     };
   });
 

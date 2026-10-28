@@ -138,6 +138,9 @@ export function parseRaster(bytes, filename, intent) {
   // the bleed check offers to add it rather than reporting "couldn't check".
   const page = createPage({ index: 0, media: box, trim: box, bleed: box, inferred: false });
   page.colorSpace = info.colorSpace;
+  page.fonts = [];
+  page.fontsKnown = false; // an image file has no live text
+
   page.images.push(createPlacedImage({
     id: filename,
     nativeWidthPx: npw,

@@ -12,9 +12,10 @@ import { dimensionsChecker } from '../src/core/checks/dimensions.js';
 import { bleedChecker } from '../src/core/checks/bleed.js';
 import { resolutionChecker } from '../src/core/checks/resolution.js';
 import { colorChecker } from '../src/core/checks/color.js';
+import { fontChecker } from '../src/core/checks/fonts.js';
 import { toView } from '../src/ui/present.js';
 
-const ALL = [dimensionsChecker, bleedChecker, resolutionChecker, colorChecker];
+const ALL = [dimensionsChecker, bleedChecker, resolutionChecker, colorChecker, fontChecker];
 const IN = 72;
 const intent = { trimSize: { width: 3.5 * IN, height: 2 * IN }, product: 'business-card', printMethod: 'offset', sides: 2, quantity: 100, requestedBleed: null };
 const ruleset = resolveRuleset(intent);

@@ -6,7 +6,7 @@
  */
 import { METHOD_LABEL } from './presets.js';
 
-const LABEL = { dimensions: 'Size', bleed: 'Bleed', resolution: 'Resolution', color: 'Color' };
+const LABEL = { dimensions: 'Size', bleed: 'Bleed', resolution: 'Resolution', color: 'Color', fonts: 'Fonts' };
 const FIX_LABEL = { 'add-bleed': 'Add bleed', 'convert-color': 'Convert to CMYK', resize: 'Resize to fit', rotate: 'Rotate to fit', 'resize-fit': 'Choose a fit' };
 const VKEY = { ready: 'ready', fixable: 'fixable', unverified: 'unverified', 'needs-attention': 'needs' };
 
@@ -61,6 +61,25 @@ const P = {
     }
     // Fallback (no longer emitted — RGB is a warning now): keep for safety.
     return { msg: 'Some screen colors will shift when printed.', why: `This method needs ${proc}; ${cs} gets converted and bright colors move.`, data: `${cs} → needs ${proc}` };
+  },
+  fonts(f) {
+    const d = f.detail || {};
+    if (f.status === 'pass') {
+      if (d.known === false) return { msg: 'No fonts to check.', why: 'An image file has no live text to embed.', data: null };
+      if (d.count === 0) return { msg: 'No text fonts to embed.', why: 'Nothing here can go missing on the press.', data: null };
+      return { msg: 'All fonts are embedded.', why: 'The press has every font the file needs — text prints exactly as drawn.', data: `${d.count} font${d.count === 1 ? '' : 's'} embedded` };
+    }
+    // warn
+    const names = (d.missing || []).join(', ');
+    const custom = d.custom > 0;
+    return {
+      msg: custom ? 'A font isn’t embedded — text may substitute or shift.' : 'Fonts aren’t embedded (standard fonts).',
+      why: custom
+        ? `${names} ${ (d.missing || []).length === 1 ? 'isn’t' : 'aren’t'} carried in the file, so the press swaps in another font and your text can look different or reflow.`
+        : `${names} ${ (d.missing || []).length === 1 ? 'is a standard font' : 'are standard fonts'} most presses have, but embedding removes all doubt.`,
+      data: `Not embedded: ${names}`,
+      guidance: 'Re-export with “embed all fonts” turned on (or outline the text), then re-check.',
+    };
   },
 };
 

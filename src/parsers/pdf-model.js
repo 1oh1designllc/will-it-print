@@ -122,6 +122,8 @@ export function buildPdfModel(rawPages, filename, intent) {
     const page = createPage({ index: i, media, trim, bleed, inferred, imagesKnown: raw.imagesKnown ?? true });
     page.colorSpace = raw.colorSpace ?? ColorSpace.UNKNOWN;
     page.hasVector = !!raw.hasVector;
+    page.fonts = raw.fonts ?? [];
+    page.fontsKnown = raw.fontsKnown ?? false;
     page.images = (raw.images ?? []).map((im) => createPlacedImage({
       id: im.id,
       nativeWidthPx: im.nativeWidthPx,

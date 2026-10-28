@@ -22,9 +22,10 @@ import { dimensionsChecker } from './core/checks/dimensions.js';
 import { bleedChecker } from './core/checks/bleed.js';
 import { resolutionChecker } from './core/checks/resolution.js';
 import { colorChecker } from './core/checks/color.js';
+import { fontChecker } from './core/checks/fonts.js';
 import { buildFixPlan } from './fix/plan.js';
 
-const ALL = [dimensionsChecker, bleedChecker, resolutionChecker, colorChecker];
+const ALL = [dimensionsChecker, bleedChecker, resolutionChecker, colorChecker, fontChecker];
 const ext = (name) => name.split('.').pop().toLowerCase();
 const imageType = (name) => { const e = ext(name); return e === 'png' ? 'png' : (e === 'tif' || e === 'tiff') ? 'tiff' : 'jpg'; };
 

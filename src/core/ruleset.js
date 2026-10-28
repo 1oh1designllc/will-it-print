@@ -40,7 +40,7 @@ const PROFILES = {
 export function resolveRuleset(intent) {
   const base = PROFILES[intent.printMethod] ?? PROFILES[PrintMethod.DIGITAL];
   // Thresholds that don't vary by print method, merged into every profile.
-  const shared = { dimensions: { tolerance: 1 } }; // points (~0.35mm), absorbs rounding
+  const shared = { dimensions: { tolerance: 1 }, fonts: { requireEmbedded: true } }; // points (~0.35mm), absorbs rounding
   const merged = { ...shared, ...base };
   // A user-requested bleed overrides the profile default.
   if (intent.requestedBleed != null) {
