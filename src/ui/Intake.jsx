@@ -7,7 +7,7 @@ import { DONATE_URL } from '../config.js';
 const OK_EXT = ['png', 'jpg', 'jpeg', 'tif', 'tiff', 'pdf'];
 const ext = (name) => name.split('.').pop().toLowerCase();
 
-export default function Intake({ onAnalyze = () => {} }) {
+export default function Intake({ onAnalyze = () => {}, v2 = false }) {
   const [file, setFile] = useState(null);
   const [err, setErr] = useState('');
   const [drag, setDrag] = useState(false);
@@ -36,7 +36,7 @@ export default function Intake({ onAnalyze = () => {} }) {
   };
 
   return (
-    <main className={s.stage}>
+    <main className={`${s.stage} ${v2 ? s.v2 : ''}`}>
       <div className={s.wrap}>
         <section className={`${s.panel} ${s.hero}`}>
           <h1 className={s.h1}>Will your file print?</h1>

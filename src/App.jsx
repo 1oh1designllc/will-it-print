@@ -62,6 +62,60 @@ function download(bytes, name) {
   URL.revokeObjectURL(url);
 }
 
+const FOOT_LINKS = [
+  ['/privacy.html', 'Privacy'],
+  ['/terms.html', 'Terms'],
+  ['mailto:info@1oh1designllc.com?subject=Will%20It%20Print%3F%20feedback', 'Feedback'],
+];
+
+// Footer. In V2 it's a sticky bottom bar that stays with the user and carries
+// the Paper/Ink background toggle; otherwise the original centered footer.
+function Footer({ v2, bgMode, setBg }) {
+  const dark = v2 && bgMode === 'ink';
+  const txt = dark ? '#C9CAD2' : '#4A4A50';
+  const link = { fontFamily: FONT, fontSize: 12.5, color: txt, fontWeight: 600, textDecoration: 'none' };
+  const dots = { margin: '0 9px', opacity: .5 };
+  const links = (
+    <span>
+      {FOOT_LINKS.map(([href, label], i) => (
+        <span key={href}>{i > 0 && <span style={dots}>·</span>}<a href={href} style={link}>{label}</a></span>
+      ))}
+      <span style={dots}>·</span>
+      <span style={{ color: txt, fontSize: 12.5 }}>© {new Date().getFullYear()} 1Oh1 Design LLC</span>
+    </span>
+  );
+  if (!v2) {
+    return (
+      <footer style={{ position: 'relative', zIndex: 1, textAlign: 'center', padding: '20px 16px 30px',
+        fontFamily: FONT, fontSize: 12.5, color: txt, textShadow: '0 1px 6px rgba(255,255,255,.95)' }}>{links}</footer>
+    );
+  }
+  const pill = (on) => ({ cursor: 'pointer', border: 0, fontFamily: FONT, fontWeight: 800, fontSize: 12,
+    padding: '6px 13px', borderRadius: 999,
+    background: on ? (dark ? '#fff' : '#15161A') : 'transparent',
+    color: on ? (dark ? '#15161A' : '#fff') : txt });
+  return (
+    <footer style={{ position: 'sticky', bottom: 0, zIndex: 6, width: '100%',
+      background: dark ? 'rgba(14,15,19,.82)' : 'rgba(242,243,245,.9)',
+      backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)',
+      borderTop: dark ? '1px solid rgba(255,255,255,.08)' : '1px solid rgba(0,0,0,.07)',
+      padding: '9px max(16px,env(safe-area-inset-right,0px)) calc(9px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))' }}>
+      <div style={{ maxWidth: 1200, margin: '0 auto', display: 'flex', alignItems: 'center',
+        justifyContent: 'space-between', gap: 14, flexWrap: 'wrap' }}>
+        {links}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+          <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: '.06em', textTransform: 'uppercase', color: txt, opacity: .85 }}>Background</span>
+          <div style={{ display: 'flex', gap: 4, padding: 4, borderRadius: 999,
+            background: dark ? 'rgba(255,255,255,.08)' : 'rgba(0,0,0,.05)' }}>
+            <button onClick={() => setBg('paper')} style={pill(bgMode === 'paper')} aria-pressed={bgMode === 'paper'}>Paper</button>
+            <button onClick={() => setBg('ink')} style={pill(bgMode === 'ink')} aria-pressed={bgMode === 'ink'}>Ink</button>
+          </div>
+        </div>
+      </div>
+    </footer>
+  );
+}
+
 export default function App() {
   const [stage, setStage] = useState('intake');
   const [job, setJob] = useState(null);   // { view, doc, result, source, intent }
@@ -71,6 +125,8 @@ export default function App() {
   const [orig, setOrig] = useState(null);   // unrotated source + base intent
   const [rotation, setRotation] = useState(0); // artwork turns (0/90/180/270)
   const [showLowRes, setShowLowRes] = useState(false); // low-res download warning
+  const [bgMode, setBgMode] = useState(() => { try { return localStorage.getItem('wipBg') === 'ink' ? 'ink' : 'paper'; } catch { return 'paper'; } });
+  const setBg = (m) => { setBgMode(m); try { localStorage.setItem('wipBg', m); } catch { /* ignore */ } };
 
   const reset = () => {
     setStage('intake'); setJob(null); setError(''); setStatus('');
@@ -175,7 +231,7 @@ export default function App() {
     <>
       {/* V2 drops the video for a plain backdrop while the background direction
           (Paper vs Ink) is being decided; live (non-V2) keeps the video. */}
-      {USE_V2 ? <BackdropV2 mode="plain" /> : <Press />}
+      {USE_V2 ? <BackdropV2 mode={bgMode} /> : <Press />}
       {stage !== 'intake' && !(USE_V2 && stage === 'result') && (
         <nav style={{ position: 'sticky', top: 0, zIndex: 5, display: 'flex', alignItems: 'center',
           padding: '10px 20px', background: 'rgba(255,255,255,.82)', backdropFilter: 'blur(8px)',
@@ -188,23 +244,14 @@ export default function App() {
       {status && <div style={{ padding: '9px 20px', background: '#EAF3EE', borderBottom: '1px solid #CFE3D7',
         fontFamily: FONT, fontSize: 12, color: '#1E5B3E' }}>{status}</div>}
 
-      {stage === 'intake' ? <Intake onAnalyze={handleAnalyze} />
+      {stage === 'intake' ? <Intake onAnalyze={handleAnalyze} v2={USE_V2} />
         : stage === 'analyzing' ? <Panel title="Checking your file…" body="One moment." />
         : stage === 'error' ? <Panel title="Couldn't read that file" body={error} />
         : <ResultView {...job.view} onFix={onFix} onReset={reset} previews={job.previews} fits={job.fits}
             fitMode={fitMode} onFitMode={setFitMode}
             rotation={rotation} onRotate={rotate} />}
 
-      <footer style={{ position: 'relative', zIndex: 1, textAlign: 'center', padding: '20px 16px 30px',
-        fontFamily: FONT, fontSize: 12.5, color: '#4A4A50', textShadow: '0 1px 6px rgba(255,255,255,.95)' }}>
-        <a href="/privacy.html" style={{ color: '#4A4A50', fontWeight: 600, textDecoration: 'none' }}>Privacy</a>
-        <span style={{ margin: '0 9px', opacity: .5 }}>·</span>
-        <a href="/terms.html" style={{ color: '#4A4A50', fontWeight: 600, textDecoration: 'none' }}>Terms</a>
-        <span style={{ margin: '0 9px', opacity: .5 }}>·</span>
-        <a href="mailto:info@1oh1designllc.com?subject=Will%20It%20Print%3F%20feedback" style={{ color: '#4A4A50', fontWeight: 600, textDecoration: 'none' }}>Feedback</a>
-        <span style={{ margin: '0 9px', opacity: .5 }}>·</span>
-        <span>© {new Date().getFullYear()} 1Oh1 Design LLC</span>
-      </footer>
+      <Footer v2={USE_V2} bgMode={bgMode} setBg={setBg} />
 
       {showLowRes && (
         <LowResModal
