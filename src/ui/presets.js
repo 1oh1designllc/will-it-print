@@ -17,16 +17,36 @@ export const PRESETS = [
   { key: 'sticker', label: 'Sticker', w: 3, h: 3, method: 'digital', bleed: 0.125 },
 ];
 
-// Presets grouped under their product, preserving first-seen order, so the
-// intake can show a product header with its sizes listed beneath.
-export const PRESET_GROUPS = (() => {
+// White-label preset lists are shop-specific; group any list the same way.
+export function groupsOf(list) {
   const order = [], map = new Map();
-  for (const p of PRESETS) {
+  for (const p of list) {
     if (!map.has(p.label)) { map.set(p.label, []); order.push(p.label); }
     map.get(p.label).push(p);
   }
   return order.map((label) => ({ label, items: map.get(label) }));
-})();
+}
+
+// Presets grouped under their product, preserving first-seen order, so the
+// intake can show a product header with its sizes listed beneath.
+export const PRESET_GROUPS = groupsOf(PRESETS);
+
+// The Bronx Design Group product line (white-label via ?shop=bronx). Small
+// formats use the strict offset profile (300 dpi target / CMYK); posters and
+// banners use large-format (0.25" bleed, viewed-at-distance resolution).
+export const BRONX_PRESETS = [
+  { key: 'bc', label: 'Business card', w: 3.5, h: 2, method: 'offset', bleed: 0.125 },
+  { key: 'pc-4x6', label: 'Postcard', w: 4, h: 6, method: 'offset', bleed: 0.125 },
+  { key: 'pc-5x7', label: 'Postcard', w: 5, h: 7, method: 'offset', bleed: 0.125 },
+  { key: 'flyer-letter', label: 'Flyer', w: 8.5, h: 11, method: 'offset', bleed: 0.125 },
+  { key: 'flyer-half', label: 'Flyer', w: 5.5, h: 8.5, method: 'offset', bleed: 0.125 },
+  { key: 'brochure', label: 'Brochure', w: 11, h: 8.5, method: 'offset', bleed: 0.125 },
+  { key: 'poster-11x17', label: 'Poster', w: 11, h: 17, method: 'large-format', bleed: 0.25 },
+  { key: 'poster-18x24', label: 'Poster', w: 18, h: 24, method: 'large-format', bleed: 0.25 },
+  { key: 'poster-24x36', label: 'Poster', w: 24, h: 36, method: 'large-format', bleed: 0.25 },
+  { key: 'banner-24x48', label: 'Banner', w: 24, h: 48, method: 'large-format', bleed: 0.25 },
+  { key: 'banner-36x72', label: 'Banner', w: 36, h: 72, method: 'large-format', bleed: 0.25 },
+];
 
 export const METHOD_LABEL = { offset: 'Offset', digital: 'Digital', 'large-format': 'Large format' };
 

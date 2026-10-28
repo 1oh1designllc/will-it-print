@@ -4,13 +4,15 @@ import Result from './ui/Result.jsx';
 import ResultV2 from './ui/ResultV2.jsx';
 import BackdropV2 from './ui/BackdropV2.jsx';
 import Press from './ui/Press.jsx';
+import { activeShop } from './shops.js';
 
-// Opt-in to the new slide-in results page with ?ui=v2 (default stays Result,
-// so the live site is unchanged for visitors — easy to test and revert).
 // V2 (slide-in results + Paper/Ink background) is the default now.
 // ?ui=legacy restores the original video/results page for comparison or rollback.
 let USE_V2 = true;
 try { USE_V2 = new URLSearchParams(window.location.search).get('ui') !== 'legacy'; } catch { /* ignore */ }
+// White-label instance (?shop=<id>) always uses the V2 UI.
+const SHOP = activeShop();
+if (SHOP) USE_V2 = true;
 const ResultView = USE_V2 ? ResultV2 : Result;
 import { toView } from './ui/present.js';
 import { parseRaster } from './parsers/raster.js';
@@ -72,12 +74,18 @@ const FOOT_LINKS = [
 
 // Footer. In V2 it's a sticky bottom bar that stays with the user and carries
 // the Paper/Ink background toggle; otherwise the original centered footer.
-function Footer({ v2, bgMode, setBg }) {
+function Footer({ v2, bgMode, setBg, shop }) {
   const dark = v2 && bgMode === 'ink';
   const txt = dark ? '#C9CAD2' : '#4A4A50';
   const link = { fontFamily: FONT, fontSize: 12.5, color: txt, fontWeight: 600, textDecoration: 'none' };
   const dots = { margin: '0 9px', opacity: .5 };
-  const links = (
+  const links = shop ? (
+    <span>
+      <a href={shop.website} target="_blank" rel="noopener noreferrer" style={link}>{shop.name}</a>
+      <span style={dots}>·</span>
+      <span style={{ color: txt, fontSize: 12.5 }}>Preflight by <a href="https://willitprint.io" target="_blank" rel="noopener noreferrer" style={{ ...link, display: 'inline' }}>Will It Print?</a></span>
+    </span>
+  ) : (
     <span>
       {FOOT_LINKS.map(([href, label], i) => (
         <span key={href}>{i > 0 && <span style={dots}>·</span>}<a href={href} style={link}>{label}</a></span>
@@ -246,14 +254,14 @@ export default function App() {
       {status && <div style={{ padding: '9px 20px', background: '#EAF3EE', borderBottom: '1px solid #CFE3D7',
         fontFamily: FONT, fontSize: 12, color: '#1E5B3E' }}>{status}</div>}
 
-      {stage === 'intake' ? <Intake onAnalyze={handleAnalyze} v2={USE_V2} />
+      {stage === 'intake' ? <Intake onAnalyze={handleAnalyze} v2={USE_V2} shop={SHOP} />
         : stage === 'analyzing' ? <Panel title="Checking your file…" body="One moment." />
         : stage === 'error' ? <Panel title="Couldn't read that file" body={error} />
         : <ResultView {...job.view} onFix={onFix} onReset={reset} previews={job.previews} fits={job.fits}
             fitMode={fitMode} onFitMode={setFitMode}
-            rotation={rotation} onRotate={rotate} />}
+            rotation={rotation} onRotate={rotate} shop={SHOP} />}
 
-      <Footer v2={USE_V2} bgMode={bgMode} setBg={setBg} />
+      <Footer v2={USE_V2} bgMode={bgMode} setBg={setBg} shop={SHOP} />
 
       {showLowRes && (
         <LowResModal

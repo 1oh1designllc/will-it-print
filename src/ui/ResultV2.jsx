@@ -73,19 +73,22 @@ function EmailCapture({ job, verdict }) {
 }
 
 export default function ResultV2({ job, verdict, headline, sub, primary, rows, onFix, onReset,
-  previews, fits, fitMode, onFitMode, rotation = 0, onRotate }) {
+  previews, fits, fitMode, onFitMode, rotation = 0, onRotate, shop = null }) {
   const tone = TONE[verdict] || TONE.ready;
   const needsFit = !!fits && rows.some((r) => r.chooseFit);
   const hasPreview = !!previews && previews.length > 0;
   const canRotate = !!onRotate && (hasPreview || !!fits);
-  const showPrint = PRINT_PARTNER_URL && (verdict === 'ready' || verdict === 'fixable');
+  const orderUrl = shop ? shop.orderUrl : PRINT_PARTNER_URL;
+  const orderLabel = shop ? shop.orderLabel : 'Get it printed';
+  const orderNewTab = !(shop && orderUrl.startsWith('mailto:'));
+  const showPrint = orderUrl && (verdict === 'ready' || verdict === 'fixable');
 
   return (
     <main className={s.v2} style={{ '--tone': tone }}>
       {/* LEFT — verdict + primary action, on a frosted panel over the background */}
       <section className={s.left}>
         <div className={s.leftIn}>
-          <p className={s.eyebrow}>Proof · <b>will it print?</b></p>
+          <p className={s.eyebrow}>Proof · <b>{shop ? shop.name : 'will it print?'}</b></p>
           <h1 className={s.headline}>{headline}</h1>
           <p className={s.subline}>{sub}</p>
           <button className={`${s.primary} ${primary.kind === 'ghost' ? s.ghost : ''}`} onClick={onFix}>{primary.label}</button>
@@ -108,7 +111,8 @@ export default function ResultV2({ job, verdict, headline, sub, primary, rows, o
           {/* Primary action lives only in the sticky left panel now — no duplicate here. */}
           {showPrint && (
             <div className={s.actions}>
-              <a className={`${s.btn} ${s.print}`} href={PRINT_PARTNER_URL} target="_blank" rel="noopener noreferrer">Get it printed →</a>
+              <a className={`${s.btn} ${s.print}`} href={orderUrl}
+                {...(orderNewTab ? { target: '_blank', rel: 'noopener noreferrer' } : {})}>{orderLabel} →</a>
             </div>
           )}
 
@@ -151,18 +155,29 @@ export default function ResultV2({ job, verdict, headline, sub, primary, rows, o
             {rows.map((r) => <CheckRow key={r.id} row={r} onFix={onFix} />)}
           </div>
 
-          <div className={s.extras}>
-            <div className={s.lead}>
-              <span><b>{verdict === 'ready' ? 'Looks print-ready.' : 'Want a pro set of eyes?'}</b><br />
-                <span>{verdict === 'ready' ? 'Need your next piece designed right the first time?' : '1Oh1 Design can fix the file and hand it back press-ready.'}</span></span>
-              <a className={s.leadBtn} href={ONE_OH_ONE_CONTACT}>{verdict === 'ready' ? 'Work with 1Oh1' : 'Have 1Oh1 fix it'}</a>
+          {shop ? (
+            <div className={s.extras}>
+              <div className={s.lead}>
+                <span><b>Questions about your order?</b><br />
+                  <span>{shop.name} is here to help — send your file over and we’ll take it from here.</span></span>
+                <a className={s.leadBtn} href={orderUrl} {...(orderNewTab ? { target: '_blank', rel: 'noopener noreferrer' } : {})}>{shop.orderLabel}</a>
+              </div>
+              <p className={s.powered}>Preflight by <a href="https://willitprint.io" target="_blank" rel="noopener noreferrer">Will It Print?</a></p>
             </div>
-            <EmailCapture job={job} verdict={verdict} />
-            <div className={s.supportRow}>
-              {DONATE_URL && <a className={s.donate} href={DONATE_URL} target="_blank" rel="noopener noreferrer">☕ Support the tool</a>}
-              <a className={s.donate} href="mailto:info@1oh1designllc.com?subject=Will%20It%20Print%3F%20feedback">✍ Send feedback</a>
+          ) : (
+            <div className={s.extras}>
+              <div className={s.lead}>
+                <span><b>{verdict === 'ready' ? 'Looks print-ready.' : 'Want a pro set of eyes?'}</b><br />
+                  <span>{verdict === 'ready' ? 'Need your next piece designed right the first time?' : '1Oh1 Design can fix the file and hand it back press-ready.'}</span></span>
+                <a className={s.leadBtn} href={ONE_OH_ONE_CONTACT}>{verdict === 'ready' ? 'Work with 1Oh1' : 'Have 1Oh1 fix it'}</a>
+              </div>
+              <EmailCapture job={job} verdict={verdict} />
+              <div className={s.supportRow}>
+                {DONATE_URL && <a className={s.donate} href={DONATE_URL} target="_blank" rel="noopener noreferrer">☕ Support the tool</a>}
+                <a className={s.donate} href="mailto:info@1oh1designllc.com?subject=Will%20It%20Print%3F%20feedback">✍ Send feedback</a>
+              </div>
             </div>
-          </div>
+          )}
 
           <p className={s.disc}><b>Before you print:</b> Will It Print? prepares your file to the best of its ability
             but can’t guarantee how it reproduces on a given press. Always confirm against a printer’s proof.</p>

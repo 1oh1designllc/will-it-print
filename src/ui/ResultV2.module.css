@@ -113,6 +113,9 @@
 .supportRow{display:flex; gap:10px; flex-wrap:wrap; align-items:center;}
 .donate{font:700 13px "Archivo",sans-serif; text-decoration:none; padding:10px 15px; border:2px solid var(--ink); background:#fff; color:var(--ink); transition:background .14s ease;}
 .donate:hover{background:#f4f4f2;}
+.powered{margin:4px 0 0; font-size:11.5px; color:var(--muted); font-weight:600;}
+.powered a{color:var(--ink); font-weight:800; text-decoration:none;}
+.powered a:hover{text-decoration:underline;}
 .disc{margin-top:20px; font-size:11px; line-height:1.5; color:var(--muted);}
 
 @media (max-width:860px){

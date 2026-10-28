@@ -1,17 +1,20 @@
 import { useRef, useState } from 'react';
 import s from './Intake.module.css';
-import logo from '../assets/wip-logo.png';
-import { PRESETS, PRESET_GROUPS, METHOD_LABEL, presetIntent, customIntent } from './presets.js';
+import defaultLogo from '../assets/wip-logo.png';
+import { PRESETS, groupsOf, METHOD_LABEL, presetIntent, customIntent } from './presets.js';
 import { DONATE_URL } from '../config.js';
 
 const OK_EXT = ['png', 'jpg', 'jpeg', 'tif', 'tiff', 'pdf'];
 const ext = (name) => name.split('.').pop().toLowerCase();
 
-export default function Intake({ onAnalyze = () => {}, v2 = false }) {
+export default function Intake({ onAnalyze = () => {}, v2 = false, shop = null }) {
+  const presets = shop?.presets || PRESETS;
+  const groups = groupsOf(presets);
+  const logo = shop?.logo || defaultLogo;
   const [file, setFile] = useState(null);
   const [err, setErr] = useState('');
   const [drag, setDrag] = useState(false);
-  const [sel, setSel] = useState('poster-11x17'); // preset key or 'custom'
+  const [sel, setSel] = useState(shop ? presets[0].key : 'poster-11x17'); // preset key or 'custom'
   const [custom, setCustom] = useState({ w: '', h: '', unit: 'in', bleed: '0.125' });
   const input = useRef(null);
 
@@ -21,18 +24,18 @@ export default function Intake({ onAnalyze = () => {}, v2 = false }) {
     setErr(''); setFile(f);
   };
 
-  const preset = PRESETS.find((p) => p.key === sel);
+  const preset = presets.find((p) => p.key === sel);
   const customValid = +custom.w > 0 && +custom.h > 0;
   const ready = !!file && (sel === 'custom' ? customValid : !!preset);
   const analyze = () => onAnalyze(file, sel === 'custom' ? customIntent(custom) : presetIntent(preset));
   const setC = (k, v) => setCustom({ ...custom, [k]: v });
 
-  const curGroup = PRESET_GROUPS.find((g) => g.items.some((p) => p.key === sel));
+  const curGroup = groups.find((g) => g.items.some((p) => p.key === sel));
   const curProduct = sel === 'custom' ? 'Custom' : (curGroup ? curGroup.label : null);
-  const products = [...PRESET_GROUPS.map((g) => g.label), 'Custom'];
+  const products = [...groups.map((g) => g.label), 'Custom'];
   const pickProduct = (label) => {
     if (label === 'Custom') setSel('custom');
-    else setSel(PRESET_GROUPS.find((g) => g.label === label).items[0].key);
+    else setSel(groups.find((g) => g.label === label).items[0].key);
   };
 
   return (
@@ -46,7 +49,8 @@ export default function Intake({ onAnalyze = () => {}, v2 = false }) {
 
         <section className={`${s.panel} ${s.inp}`}>
           <div className={s.hdrRow}>
-            <img className={s.logo} src={logo} alt="Will It Print?" />
+            <img className={s.logo} src={logo} alt={shop ? shop.name : 'Will It Print?'}
+              style={shop ? { width: 'clamp(168px,24vw,250px)' } : undefined} />
             <div className={s.badges}>
               <span className={s.badge}><b>✓</b> Free to use</span>
               <span className={s.badge}><b>✓</b> 100% private</span>
@@ -118,16 +122,18 @@ export default function Intake({ onAnalyze = () => {}, v2 = false }) {
           <button className={s.cta} disabled={!ready} onClick={analyze}>Check my file</button>
           <p className={s.note}>Your file never leaves your browser. Will It Print? is a preflight
             aid, not a guarantee — always approve a printer’s proof before production.</p>
-          <div className={s.supportRow}>
-            {DONATE_URL && (
-              <a className={s.donate} href={DONATE_URL} target="_blank" rel="noopener noreferrer">
-                ☕ Support the tool
+          {!shop && (
+            <div className={s.supportRow}>
+              {DONATE_URL && (
+                <a className={s.donate} href={DONATE_URL} target="_blank" rel="noopener noreferrer">
+                  ☕ Support the tool
+                </a>
+              )}
+              <a className={s.donate} href="mailto:info@1oh1designllc.com?subject=Will%20It%20Print%3F%20feedback">
+                ✍ Send feedback
               </a>
-            )}
-            <a className={s.donate} href="mailto:info@1oh1designllc.com?subject=Will%20It%20Print%3F%20feedback">
-              ✍ Send feedback
-            </a>
-          </div>
+            </div>
+          )}
           </div>
         </section>
       </div>
