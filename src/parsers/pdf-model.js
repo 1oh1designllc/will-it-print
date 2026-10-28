@@ -58,29 +58,32 @@ export function resolveBoxes(raw, intent) {
   const trimInset = isInset(declaredTrim);
   const cropIsInset = isInset(cropTrim);
 
-  // When no box gives a usable trim, infer it from the ordered size — but only
-  // when the ordered size plausibly IS this page's trim: it fits inside the
-  // media with a symmetric, bleed-sized margin all around (i.e. the overrun
-  // really looks like baked-in bleed). Otherwise keep trim = media so the size
-  // check can still honestly flag a genuinely wrong-sized file.
+  // Baked-bleed inference: a bogus full-page TrimBox hides a real trim only when
+  // the ORDERED size is genuinely smaller than the page by a plausible,
+  // symmetric bleed margin (real overrun to treat as bleed). A ~zero margin
+  // means the page IS the ordered size — a flat, no-bleed file, NOT baked bleed —
+  // so we leave the declared boxes alone and let the bleed check flag it.
   const ordered = intent?.trimSize;
   let inferredTrim = null;
   if (!trimInset && !cropIsInset && ordered) {
     const mW = (media.width - ordered.width) / 2;  // margin per side
     const mH = (media.height - ordered.height) / 2;
+    const MIN_BLEED = 1;          // pt — need real overrun, else it's a flat page
     const MAX_BLEED = 0.375 * 72; // 27pt — generous; real bleeds are 0.125–0.25"
     const SYM = 3;                // pt — baked bleed is symmetric all around
     const plausible =
       ordered.width <= media.width + tol && ordered.height <= media.height + tol &&
-      mW >= -tol && mH >= -tol &&
+      mW >= MIN_BLEED && mH >= MIN_BLEED &&
       mW <= MAX_BLEED && mH <= MAX_BLEED &&
       Math.abs(mW - mH) <= SYM;
     if (plausible) inferredTrim = centerIntent(media, intent);
   }
+  const usedInferredTrim = !!inferredTrim;
 
   const trim = trimInset ? declaredTrim
              : cropIsInset ? cropTrim
-             : (inferredTrim ?? media);
+             : usedInferredTrim ? inferredTrim
+             : (declaredTrim ?? cropTrim ?? media);
 
   // Bleed is real only when a declared BleedBox actually extends past the trim;
   // otherwise the media edge is the outer bound (the art bleeds to the page).
@@ -89,9 +92,16 @@ export function resolveBoxes(raw, intent) {
   );
   const bleed = bleedValid ? declaredBleed : media;
 
-  // "Inferred" whenever we didn't get BOTH a trusted inset trim and a real
-  // bleed box — the bleed checker softens a shortfall to a warning in that case.
-  const inferred = !(trimInset && bleedValid);
+  // Softening flag for the bleed check. We "inferred" when we filled the trim
+  // ourselves (baked-bleed guess or CropBox-as-trim). With a trusted inset
+  // TrimBox we inferred only if the bleed wasn't declared. For a flat page where
+  // nothing was inset, fall back to the original rule: boxes explicitly declared
+  // (even == page) are an authored "no bleed" → a hard result, not a soft guess.
+  let inferred;
+  if (trimInset) inferred = !bleedValid;
+  else if (usedInferredTrim || cropIsInset) inferred = true;
+  else inferred = !(raw.trim && raw.bleed);
+
   const usedCropAsTrim = !trimInset && cropIsInset;
 
   return { media, trim, bleed, inferred, usedCropAsTrim };
