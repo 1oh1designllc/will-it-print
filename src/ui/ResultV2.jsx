@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import s from './ResultV2.module.css';
-import { ONE_OH_ONE_CONTACT, DONATE_URL, EMAIL_ENDPOINT, PRINT_PARTNER_NAME, PRINT_PARTNER_URL } from '../config.js';
+import { ONE_OH_ONE_CONTACT, DONATE_URL, EMAIL_ENDPOINT, PRINT_PARTNER_NAME, PRINT_PARTNER_URL,
+  PRINT_PARTNER_REF, PRINT_PARTNER_CODE, PRINT_PARTNER_OFFER, PRINT_PARTNER_BEACON } from '../config.js';
+import { orderLink, countOrderClick } from '../shops.js';
 
 /* Opt-in results view (?ui=v2): a report panel that slides in from the right,
    WeTransfer-style. Same props as Result.jsx, so App can swap it in cleanly. */
@@ -78,10 +80,14 @@ export default function ResultV2({ job, verdict, headline, sub, primary, rows, o
   const needsFit = !!fits && rows.some((r) => r.chooseFit);
   const hasPreview = !!previews && previews.length > 0;
   const canRotate = !!onRotate && (hasPreview || !!fits);
-  const orderUrl = shop ? shop.orderUrl : PRINT_PARTNER_URL;
-  const orderLabel = shop ? shop.orderLabel : 'Get it printed';
-  const orderNewTab = !(shop && orderUrl.startsWith('mailto:'));
-  const showPrint = orderUrl && (verdict === 'ready' || verdict === 'fixable');
+  const orderCfg = shop
+    ? { url: shop.website, email: shop.orderEmail, ref: shop.ref, code: shop.code, offer: shop.codeOffer, beacon: shop.clickBeacon, label: shop.orderLabel, name: shop.name }
+    : { url: PRINT_PARTNER_URL, email: '', ref: PRINT_PARTNER_REF, code: PRINT_PARTNER_CODE, offer: PRINT_PARTNER_OFFER, beacon: PRINT_PARTNER_BEACON, label: 'Get it printed', name: PRINT_PARTNER_NAME };
+  const order = orderLink(orderCfg);
+  const orderLabel = orderCfg.label;
+  const orderNewTab = order.newTab;
+  const onOrderClick = () => countOrderClick(orderCfg.beacon, shop ? shop.id : 'public');
+  const showPrint = (orderCfg.url || orderCfg.email) && (verdict === 'ready' || verdict === 'fixable');
 
   return (
     <main className={s.v2} style={{ '--tone': tone }}>
@@ -112,9 +118,14 @@ export default function ResultV2({ job, verdict, headline, sub, primary, rows, o
 
           {/* Primary action lives only in the sticky left panel now — no duplicate here. */}
           {showPrint && (
-            <div className={s.actions}>
-              <a className={`${s.btn} ${s.print}`} href={orderUrl}
-                {...(orderNewTab ? { target: '_blank', rel: 'noopener noreferrer' } : {})}>{orderLabel} →</a>
+            <div className={s.orderBlock}>
+              <div className={s.actions}>
+                <a className={`${s.btn} ${s.print}`} href={order.href} onClick={onOrderClick}
+                  {...(orderNewTab ? { target: '_blank', rel: 'noopener noreferrer' } : {})}>{orderLabel} →</a>
+              </div>
+              {orderCfg.code && (
+                <p className={s.codeNote}>Ordering by phone or email? Mention code <b>{orderCfg.code}</b>{orderCfg.offer ? ` for ${orderCfg.offer}` : ''}.</p>
+              )}
             </div>
           )}
 
@@ -162,7 +173,7 @@ export default function ResultV2({ job, verdict, headline, sub, primary, rows, o
               <div className={s.lead}>
                 <span><b>Questions about your order?</b><br />
                   <span>{shop.name} is here to help — send your file over and we’ll take it from here.</span></span>
-                <a className={s.leadBtn} href={orderUrl} {...(orderNewTab ? { target: '_blank', rel: 'noopener noreferrer' } : {})}>{shop.orderLabel}</a>
+                <a className={s.leadBtn} href={order.href} onClick={onOrderClick} {...(orderNewTab ? { target: '_blank', rel: 'noopener noreferrer' } : {})}>{shop.orderLabel}</a>
               </div>
               <p className={s.powered}>Preflight by <a href="https://willitprint.io" target="_blank" rel="noopener noreferrer">Will It Print?</a></p>
             </div>

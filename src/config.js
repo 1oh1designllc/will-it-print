@@ -21,3 +21,10 @@ export const EMAIL_ENDPOINT = 'https://formspree.io/f/mvkzlyoy';
 // Empty URL = the block is hidden.
 export const PRINT_PARTNER_NAME = 'The Bronx Design Group';
 export const PRINT_PARTNER_URL = 'https://www.bronxdesign.com';
+
+// Referral tracking for the public site's "Get it printed" (no tracker on our
+// side — the code rides the order; the printer counts it). See shops.js.
+export const PRINT_PARTNER_REF = 'willitprint';   // ?ref= on the web order link
+export const PRINT_PARTNER_CODE = 'WIP-BRONX';     // code shown + baked into orders
+export const PRINT_PARTNER_OFFER = '';             // optional incentive, e.g. '10% off'
+export const PRINT_PARTNER_BEACON = '';            // optional cookieless click counter; empty = OFF
