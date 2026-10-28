@@ -20,17 +20,6 @@ const FIT_META = [
 // A fixable "fail" presents as amber, like Result.jsx.
 const keyFor = (row) => (row.status === 'fail' && row.fix ? 'warn' : row.status);
 
-function Tile({ row }) {
-  const k = keyFor(row);
-  return (
-    <div className={s.tile} style={{ '--st': ST[k] }}>
-      <div className={s.tk}><span className={s.dot}>{ICON[k]}</span> {row.label}</div>
-      <div className={s.tv}>{row.data ? row.data.split('  ')[0] : row.msg}</div>
-      <div className={s.td}>{row.note ? `${row.note} · ` : ''}{row.msg}</div>
-    </div>
-  );
-}
-
 function CheckRow({ row, onFix }) {
   const [open, setOpen] = useState(false);
   const k = keyFor(row);
@@ -120,27 +109,22 @@ export default function ResultV2({ job, verdict, headline, sub, primary, rows, o
             {showPrint && <a className={`${s.btn} ${s.print}`} href={PRINT_PARTNER_URL} target="_blank" rel="noopener noreferrer">Get it printed →</a>}
           </div>
 
-          <div className={s.split}>
-            <div className={s.grid}>
-              {rows.map((r) => <Tile key={r.id} row={r} />)}
-            </div>
-            <div>
-              <p className={s.pvLabel}>Preview</p>
-              {hasPreview ? previews.slice(0, 2).map((src, i) => (
-                <div key={i} className={s.preview}>
-                  <img src={src} alt={`Page ${i + 1}`} />
-                  <div className={s.pvFoot}><span className={s.n}>Page {i + 1}{previews.length > 1 ? ` of ${previews.length}` : ''}</span><span className={s.s}>+ crop marks</span></div>
-                </div>
-              )) : <div className={s.noPrev}>Preview not available for this file.</div>}
-              {canRotate && (
-                <div className={s.rotBar}>
-                  <span>Rotate</span>
-                  <button className={s.rotBtn} onClick={() => onRotate(-90)} aria-label="Rotate left">↺</button>
-                  <button className={s.rotBtn} onClick={() => onRotate(90)} aria-label="Rotate right">↻</button>
-                  <span style={{ letterSpacing: 0 }}>{rotation}°</span>
-                </div>
-              )}
-            </div>
+          <div className={s.previewWrap}>
+            <p className={s.pvLabel}>Preview</p>
+            {hasPreview ? previews.slice(0, 2).map((src, i) => (
+              <div key={i} className={s.preview}>
+                <img src={src} alt={`Page ${i + 1}`} />
+                <div className={s.pvFoot}><span className={s.n}>Page {i + 1}{previews.length > 1 ? ` of ${previews.length}` : ''}</span><span className={s.s}>+ crop marks</span></div>
+              </div>
+            )) : <div className={s.noPrev}>Preview not available for this file.</div>}
+            {canRotate && (
+              <div className={s.rotBar}>
+                <span>Rotate</span>
+                <button className={s.rotBtn} onClick={() => onRotate(-90)} aria-label="Rotate left">↺</button>
+                <button className={s.rotBtn} onClick={() => onRotate(90)} aria-label="Rotate right">↻</button>
+                <span style={{ letterSpacing: 0 }}>{rotation}°</span>
+              </div>
+            )}
           </div>
 
           {needsFit && (
