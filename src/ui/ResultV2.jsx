@@ -72,7 +72,7 @@ function EmailCapture({ job, verdict }) {
   );
 }
 
-export default function ResultV2({ job, verdict, headline, sub, primary, rows, onFix,
+export default function ResultV2({ job, verdict, headline, sub, primary, rows, onFix, onReset,
   previews, fits, fitMode, onFitMode, rotation = 0, onRotate }) {
   const tone = TONE[verdict] || TONE.ready;
   const needsFit = !!fits && rows.some((r) => r.chooseFit);
@@ -90,6 +90,7 @@ export default function ResultV2({ job, verdict, headline, sub, primary, rows, o
           <p className={s.subline}>{sub}</p>
           <button className={`${s.primary} ${primary.kind === 'ghost' ? s.ghost : ''}`} onClick={onFix}>{primary.label}</button>
           {primary.count && <span className={s.count}>{primary.count}</span>}
+          {onReset && <button className={s.reset} onClick={onReset}>← Check another file</button>}
         </div>
       </section>
 

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import Intake from './ui/Intake.jsx';
 import Result from './ui/Result.jsx';
 import ResultV2 from './ui/ResultV2.jsx';
+import BackdropV2 from './ui/BackdropV2.jsx';
 import Press from './ui/Press.jsx';
 
 // Opt-in to the new slide-in results page with ?ui=v2 (default stays Result,
@@ -172,8 +173,10 @@ export default function App() {
 
   return (
     <>
-      <Press />
-      {stage !== 'intake' && (
+      {/* V2 drops the video for a plain backdrop while the background direction
+          (Paper vs Ink) is being decided; live (non-V2) keeps the video. */}
+      {USE_V2 ? <BackdropV2 mode="plain" /> : <Press />}
+      {stage !== 'intake' && !(USE_V2 && stage === 'result') && (
         <nav style={{ position: 'sticky', top: 0, zIndex: 5, display: 'flex', alignItems: 'center',
           padding: '10px 20px', background: 'rgba(255,255,255,.82)', backdropFilter: 'blur(8px)',
           borderBottom: '1px solid rgba(0,0,0,.06)', fontFamily: FONT, fontSize: 12 }}>
@@ -188,7 +191,7 @@ export default function App() {
       {stage === 'intake' ? <Intake onAnalyze={handleAnalyze} />
         : stage === 'analyzing' ? <Panel title="Checking your file…" body="One moment." />
         : stage === 'error' ? <Panel title="Couldn't read that file" body={error} />
-        : <ResultView {...job.view} onFix={onFix} previews={job.previews} fits={job.fits}
+        : <ResultView {...job.view} onFix={onFix} onReset={reset} previews={job.previews} fits={job.fits}
             fitMode={fitMode} onFitMode={setFitMode}
             rotation={rotation} onRotate={rotate} />}
 
