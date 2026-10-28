@@ -118,11 +118,16 @@ export default function Intake({ onAnalyze = () => {}, v2 = false }) {
           <button className={s.cta} disabled={!ready} onClick={analyze}>Check my file</button>
           <p className={s.note}>Your file never leaves your browser. Will It Print? is a preflight
             aid, not a guarantee — always approve a printer’s proof before production.</p>
-          {DONATE_URL && (
-            <a className={s.donate} href={DONATE_URL} target="_blank" rel="noopener noreferrer">
-              ☕ Found this useful? Support the tool
+          <div className={s.supportRow}>
+            {DONATE_URL && (
+              <a className={s.donate} href={DONATE_URL} target="_blank" rel="noopener noreferrer">
+                ☕ Support the tool
+              </a>
+            )}
+            <a className={s.donate} href="mailto:info@1oh1designllc.com?subject=Will%20It%20Print%3F%20feedback">
+              ✍ Send feedback
             </a>
-          )}
+          </div>
           </div>
         </section>
       </div>

@@ -158,7 +158,10 @@ export default function ResultV2({ job, verdict, headline, sub, primary, rows, o
               <a className={s.leadBtn} href={ONE_OH_ONE_CONTACT}>{verdict === 'ready' ? 'Work with 1Oh1' : 'Have 1Oh1 fix it'}</a>
             </div>
             <EmailCapture job={job} verdict={verdict} />
-            {DONATE_URL && <a className={s.donate} href={DONATE_URL} target="_blank" rel="noopener noreferrer">☕ Support the tool</a>}
+            <div className={s.supportRow}>
+              {DONATE_URL && <a className={s.donate} href={DONATE_URL} target="_blank" rel="noopener noreferrer">☕ Support the tool</a>}
+              <a className={s.donate} href="mailto:info@1oh1designllc.com?subject=Will%20It%20Print%3F%20feedback">✍ Send feedback</a>
+            </div>
           </div>
 
           <p className={s.disc}><b>Before you print:</b> Will It Print? prepares your file to the best of its ability

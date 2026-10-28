@@ -7,8 +7,10 @@ import Press from './ui/Press.jsx';
 
 // Opt-in to the new slide-in results page with ?ui=v2 (default stays Result,
 // so the live site is unchanged for visitors — easy to test and revert).
-let USE_V2 = false;
-try { USE_V2 = new URLSearchParams(window.location.search).get('ui') === 'v2'; } catch { /* ignore */ }
+// V2 (slide-in results + Paper/Ink background) is the default now.
+// ?ui=legacy restores the original video/results page for comparison or rollback.
+let USE_V2 = true;
+try { USE_V2 = new URLSearchParams(window.location.search).get('ui') !== 'legacy'; } catch { /* ignore */ }
 const ResultView = USE_V2 ? ResultV2 : Result;
 import { toView } from './ui/present.js';
 import { parseRaster } from './parsers/raster.js';

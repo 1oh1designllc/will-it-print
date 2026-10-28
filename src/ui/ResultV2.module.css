@@ -110,7 +110,9 @@
 .mail{display:flex; gap:8px; flex-wrap:wrap;}
 .mailIn{flex:1 1 180px; min-width:0; font:14px "Archivo",sans-serif; height:42px; padding:0 12px; border:2px solid var(--ink); border-radius:0;}
 .mailBtn{cursor:pointer; font:800 14px "Archivo",sans-serif; padding:0 18px; height:42px; background:var(--ink); color:#fff; border:0;}
-.donate{align-self:flex-start; font:700 13px "Archivo",sans-serif; text-decoration:none; padding:10px 15px; border:2px solid var(--ink); background:#fff; color:var(--ink);}
+.supportRow{display:flex; gap:10px; flex-wrap:wrap; align-items:center;}
+.donate{font:700 13px "Archivo",sans-serif; text-decoration:none; padding:10px 15px; border:2px solid var(--ink); background:#fff; color:var(--ink); transition:background .14s ease;}
+.donate:hover{background:#f4f4f2;}
 .disc{margin-top:20px; font-size:11px; line-height:1.5; color:var(--muted);}
 
 @media (max-width:860px){
