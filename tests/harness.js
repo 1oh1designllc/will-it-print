@@ -111,7 +111,7 @@ const fixtures = [
     expectStatus: CheckStatus.PASS, expectVerdict: Verdict.READY },
   { label: 'color: RGB', checkers: [colorChecker],
     doc: doc('c-rgb.pdf', withColor(goodBleedPage(), ColorSpace.RGB)),
-    expectStatus: CheckStatus.FAIL, expectVerdict: Verdict.FIXABLE },
+    expectStatus: CheckStatus.WARN, expectVerdict: Verdict.READY }, // RGB softened to advisory
   { label: 'color: spot', checkers: [colorChecker],
     doc: doc('c-spot.pdf', withColor(goodBleedPage(), ColorSpace.SPOT)),
     expectStatus: CheckStatus.WARN, expectVerdict: Verdict.READY },

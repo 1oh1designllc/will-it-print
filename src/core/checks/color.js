@@ -8,20 +8,24 @@
  * of all — so the printed piece doesn't match what the designer saw.
  *
  * D3 / beginner audience: "your file is RGB" means nothing to someone
- * unfamiliar with printing. So instead of a bare flag we offer the
- * actual fix — convert to the process color — carrying an honest caveat
- * that in-browser conversion has no ICC profile and is a preview, not a
- * contract proof.
+ * unfamiliar with printing. So instead of a bare flag we explain the
+ * effect in plain words and point them to the real fix (convert in
+ * their design app, where a proper ICC profile applies).
  *
- * Uses all four statuses:
+ * Statuses:
  *   allowed mode          PASS
  *   unexpected spot        WARN   (extra plate / won't reproduce exactly)
- *   RGB / mixed / other    FAIL   (fixable: convert to process)
+ *   RGB / mixed / other    WARN   (advisory: press will convert, colors shift)
  *   unreadable mode        UNVERIFIED
+ *
+ * RGB is a WARNING, not a blocker: the press will convert it and it will
+ * still print, so we advise rather than fail. We don't offer an in-browser
+ * "convert" button because without an ICC profile it only approximates the
+ * result — the honest fix is to convert in the design app.
  * ------------------------------------------------------------------
  */
 import { ColorSpace } from '../canonical-model.js';
-import { pass, warn, unverified, fail } from '../checker.js';
+import { pass, warn, unverified } from '../checker.js';
 
 const ID = 'color';
 
@@ -63,24 +67,15 @@ export const colorChecker = {
 
       // Spot color the method prints as process: usually unintended cost.
       if (cs === ColorSpace.SPOT) {
-        return warn(ID, `Page ${pageNo}: uses ${NAME[cs]}, which this method prints as process — that often means an unexpected extra plate, or a Pantone that won't reproduce exactly. If it was intentional, keep it and tell your printer; otherwise we can convert it to ${PROC}.`, {
-          page: page.index, detail, fixable: true,
-          fixAction: {
-            type: 'convert-color',
-            params: { from: 'spot', to: process, page: page.index },
-            caveat: 'Spot-to-process is approximate — a Pantone rarely matches its process build. Keep the spot if the exact color matters.',
-          },
+        return warn(ID, `Page ${pageNo}: uses ${NAME[cs]}, which this method prints as process — that often means an unexpected extra plate, or a Pantone that won't reproduce exactly. If it was intentional, keep it and tell your printer; otherwise convert it to ${PROC} in your design app.`, {
+          page: page.index, detail,
         });
       }
 
-      // RGB / mixed / anything else not printable here: convert to process.
-      return fail(ID, `Page ${pageNo}: the file is ${NAME[cs]}, but this method needs ${PROC}. If you send it as-is the printer converts it for you and colors can shift — bright blues and greens especially. We can convert it to ${PROC} first so you see the shift before it prints.`, {
-        page: page.index, detail, fixable: true,
-        fixAction: {
-          type: 'convert-color',
-          params: { from: cs, to: process, page: page.index },
-          caveat: `In-browser ${NAME[cs]}\u2192${PROC} conversion has no ICC profile, so treat it as a preview and confirm critical colors against your printer's proof.`,
-        },
+      // RGB / mixed: advisory WARNING, not a blocker. The press converts it and
+      // colors can shift; the honest fix is to convert in the design app.
+      return warn(ID, `Page ${pageNo}: the file is ${NAME[cs]}, but this method prints in ${PROC}. The press converts it and some colors can shift — bright blues and greens most of all. Convert to ${PROC} in your design app first so you control the result.`, {
+        page: page.index, detail,
       });
     });
   },

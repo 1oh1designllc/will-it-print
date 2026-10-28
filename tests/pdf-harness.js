@@ -51,16 +51,17 @@ const cases = [
     make: () => makePdf(252, 144, {}),
     check: (v) => v.rows.some((r) => r.label === 'Bleed' && r.status === 'warn') },
   // A 1x1 image stretched to full page is genuinely low-res: the pdf.js DPI
-  // pass must catch it (unfixable) AND colour flags RGB -> needs attention.
-  // (toView maps the engine's 'needs-attention' to the UI key 'needs'.)
+  // pass must catch it (unfixable) -> needs attention. RGB is now an advisory
+  // warning (not a blocker). (toView maps 'needs-attention' to the UI key 'needs'.)
   { label: 'low-res RGB image', verdict: 'needs',
     make: () => makePdf(294, 186, { trim: [21, 21, 252, 144], bleed: [12, 12, 270, 162] }, { rgbImage: true }),
-    check: (v) => v.rows.some((r) => r.label === 'Color' && r.status === 'fail' && r.fix)
+    check: (v) => v.rows.some((r) => r.label === 'Color' && r.status === 'warn')
       && v.rows.some((r) => r.label === 'Resolution' && r.status === 'fail') },
-  // Chromatic RGB VECTOR (no image): colour detection must flag it for offset.
-  { label: 'chromatic RGB vector', verdict: Verdict.FIXABLE,
+  // Chromatic RGB VECTOR (no image): colour is flagged as an advisory WARNING,
+  // so with good size/bleed/res the file still reads READY.
+  { label: 'chromatic RGB vector', verdict: Verdict.READY,
     make: () => makePdf(294, 186, { trim: [21, 21, 252, 144], bleed: [12, 12, 270, 162] }, { fill: [0.1, 0.3, 0.7] }),
-    check: (v) => v.rows.some((r) => r.label === 'Color' && r.status === 'fail' && r.fix)
+    check: (v) => v.rows.some((r) => r.label === 'Color' && r.status === 'warn')
       && v.rows.some((r) => r.label === 'Resolution' && r.status === 'pass') },
   // Black-only vector (RGB 0,0,0) is neutral -> must NOT flag colour, and with
   // proper bleed the whole card is print-ready -> READY.
