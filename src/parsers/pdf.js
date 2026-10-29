@@ -176,7 +176,17 @@ function pageFonts(page, ctx) {
  */
 export async function parsePdf(data, filename, intent) {
   const bytes = data instanceof Uint8Array ? data : new Uint8Array(data);
-  const pdf = await PDFDocument.load(bytes, { updateMetadata: false });
+  let pdf;
+  try {
+    pdf = await PDFDocument.load(bytes, { updateMetadata: false });
+  } catch (e) {
+    // Owner-password ("permissions") PDFs are common and still readable — retry
+    // ignoring encryption. A real user-password PDF can't be read: flag it clearly.
+    if (/encrypt/i.test(e?.message || '')) {
+      try { pdf = await PDFDocument.load(bytes, { updateMetadata: false, ignoreEncryption: true }); }
+      catch { const err = new Error('This PDF is password-protected'); err.code = 'ENCRYPTED'; throw err; }
+    } else { throw e; }
+  }
 
   const ctx = pdf.context;
   const rawPages = pdf.getPages().map((p) => {

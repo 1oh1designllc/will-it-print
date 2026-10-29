@@ -60,6 +60,19 @@ function LowResModal({ onCancel, onAccept }) {
   );
 }
 
+// Turn a parser/loader error into something a non-developer can act on.
+function friendlyError(e, name) {
+  const msg = (e && e.message) || '';
+  const isPdf = /\.pdf$/i.test(name || '');
+  if (e?.code === 'ENCRYPTED' || /password|encrypt/i.test(msg)) {
+    return 'This PDF is password-protected, so its contents can’t be read. Remove the password (or re-export without encryption) and try again.';
+  }
+  if (/invalid|corrupt|parse|No PDF header|FlateDecode|stream|expected|unexpected|malformed|not a png|not a jpeg|unsupported/i.test(msg)) {
+    return `This file looks damaged or isn’t a valid ${isPdf ? 'PDF' : 'image'}. Re-export it and try again.`;
+  }
+  return 'Couldn’t read that file. Re-export it as a PDF, PNG, JPG, or TIFF and try again.';
+}
+
 function download(bytes, name) {
   const url = URL.createObjectURL(new Blob([bytes], { type: 'application/pdf' }));
   const a = document.createElement('a');
@@ -180,7 +193,7 @@ export default function App() {
       setOrig({ source, intent });
       await analyzeSource(source, intent);
     } catch (e) {
-      setError(e.message || 'That file could not be read.');
+      setError(friendlyError(e, file.name));
       setStage('error');
     }
   }

@@ -5,6 +5,7 @@ import { PRESETS, groupsOf, METHOD_LABEL, presetIntent, customIntent } from './p
 import { DONATE_URL } from '../config.js';
 
 const OK_EXT = ['png', 'jpg', 'jpeg', 'tif', 'tiff', 'pdf'];
+const MAX_MB = 150; // the whole file loads into browser memory; cap it so a tab can't crash
 const ext = (name) => name.split('.').pop().toLowerCase();
 
 export default function Intake({ onAnalyze = () => {}, v2 = false, shop = null }) {
@@ -21,6 +22,8 @@ export default function Intake({ onAnalyze = () => {}, v2 = false, shop = null }
   const take = (f) => {
     if (!f) return;
     if (!OK_EXT.includes(ext(f.name))) { setErr(`Can’t read .${ext(f.name)} yet — PNG, JPG, TIFF, or PDF for now.`); return; }
+    if (f.size === 0) { setErr('That file is empty — it may not have finished exporting. Re-export and try again.'); return; }
+    if (f.size > MAX_MB * 1024 * 1024) { setErr(`That file is ${(f.size / 1048576).toFixed(0)}MB — too big to check in the browser. Keep it under ${MAX_MB}MB (flatten or downsample images, then re-export).`); return; }
     setErr(''); setFile(f);
   };
 
