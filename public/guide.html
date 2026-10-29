@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Print-Ready Checklist — Will It Print?</title>
+<meta name="description" content="What makes a file print-ready: correct trim size, bleed, 300 DPI resolution, CMYK color, and embedded fonts — explained in plain English, with the exact numbers printers expect." />
+<link rel="canonical" href="https://willitprint.io/guide.html" />
+<meta name="theme-color" content="#15161A" />
+<meta property="og:type" content="article" />
+<meta property="og:site_name" content="Will It Print?" />
+<meta property="og:title" content="The Print-Ready Checklist — bleed, resolution, color & fonts" />
+<meta property="og:description" content="The 5 things printers check — and the exact numbers that make a file print-ready. Then check your own file free, right in your browser." />
+<meta property="og:url" content="https://willitprint.io/guide.html" />
+<meta property="og:image" content="https://willitprint.io/og-image.png" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="The Print-Ready Checklist" />
+<meta name="twitter:description" content="The 5 things printers check, with the exact numbers — then check your file free." />
+<meta name="twitter:image" content="https://willitprint.io/og-image.png" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+<style>
+  :root{ --ink:#15161A; --graphite:#4A4A50; --hair:#E7E6E1; --paper:#F6F6F3;
+    --c:#00AEEF; --m:#EC008C; --y:#FFE000; --yes:#1E7A4D; --bw:2.5pt; }
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; }
+  body{ font-family:"Archivo",system-ui,sans-serif; color:var(--ink); background:var(--paper);
+    -webkit-font-smoothing:antialiased; line-height:1.6; }
+  .wrap{ max-width:780px; margin:0 auto; padding:40px 20px 80px; }
+  .back{ display:inline-block; font-size:13px; font-weight:700; color:var(--graphite); text-decoration:none; margin-bottom:22px; }
+  .back:hover{ color:var(--ink); }
+  .hero{ background:#fff; border:var(--bw) solid var(--ink); padding:36px 32px; }
+  .cmyk{ display:flex; gap:6px; margin-bottom:18px; }
+  .cmyk span{ width:26px; height:10px; }
+  .cmyk .a{background:var(--c);} .cmyk .b{background:var(--m);} .cmyk .c{background:var(--y);} .cmyk .d{background:var(--ink);}
+  h1{ font-size:clamp(30px,6vw,46px); font-weight:900; letter-spacing:-.03em; line-height:1.02; margin:0 0 12px; }
+  .lead{ font-size:17px; font-weight:600; color:#2C2C31; margin:0; max-width:60ch; }
+  .cta{ display:inline-block; margin-top:22px; font-weight:800; font-size:15.5px; color:#fff; background:var(--ink);
+    text-decoration:none; padding:14px 22px; }
+  .cta:hover{ background:#000; }
+  h2{ font-size:22px; font-weight:800; letter-spacing:-.01em; margin:38px 0 4px; display:flex; align-items:baseline; gap:12px; }
+  .num{ font-variant-numeric:tabular-nums; font-size:14px; font-weight:800; color:#fff; background:var(--ink);
+    width:28px; height:28px; display:inline-grid; place-items:center; flex:0 0 auto; transform:translateY(3px); }
+  h3{ font-size:15px; font-weight:800; margin:18px 0 4px; color:var(--graphite); text-transform:uppercase; letter-spacing:.06em; }
+  p,li{ font-size:15.5px; color:#2C2C31; }
+  ul{ padding-left:20px; margin:8px 0; }
+  li{ margin:6px 0; }
+  a{ color:var(--ink); }
+  .spec{ display:inline-block; font-weight:800; font-variant-numeric:tabular-nums; background:#fff;
+    border:2px solid var(--ink); padding:1px 8px; }
+  .note{ background:#fff; border-left:4px solid var(--c); padding:12px 16px; margin:14px 0; font-size:14.5px; }
+  .section{ border-top:2px solid var(--hair); padding-top:6px; }
+  .check{ background:#fff; border:var(--bw) solid var(--ink); padding:26px 28px; margin-top:34px; }
+  .check h2{ margin-top:0; }
+  .summary{ background:var(--ink); color:#fff; padding:30px 30px; margin-top:40px; }
+  .summary h2{ color:#fff; margin-top:0; }
+  .summary ul{ list-style:none; padding:0; }
+  .summary li{ color:#EDEDF0; padding:9px 0; border-bottom:1px solid rgba(255,255,255,.12); display:flex; gap:12px; align-items:baseline; }
+  .summary li:last-child{ border-bottom:0; }
+  .tick{ color:var(--y); font-weight:900; flex:0 0 auto; }
+  .summary b{ color:#fff; }
+  .endcta{ text-align:center; margin-top:40px; }
+  .endcta a{ display:inline-block; font-weight:800; font-size:16px; color:#fff; background:var(--yes); text-decoration:none; padding:16px 28px; }
+  .endcta a:hover{ background:#17663f; }
+  .foot{ margin-top:36px; padding-top:18px; border-top:2px solid var(--hair); font-size:13px; color:var(--graphite); text-align:center; }
+  .foot a{ color:var(--graphite); font-weight:600; text-decoration:none; }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <a class="back" href="/">← Will It Print?</a>
+
+    <div class="hero">
+      <div class="cmyk" aria-hidden="true"><span class="a"></span><span class="b"></span><span class="c"></span><span class="d"></span></div>
+      <h1>The print-ready checklist</h1>
+      <p class="lead">Printers reject files for the same handful of reasons every day. Here's what "print-ready" actually means — the five things a press checks, and the exact numbers that keep your job from getting sent back. Then you can check your own file free, right in your browser.</p>
+      <a class="cta" href="/">Check my file →</a>
+    </div>
+
+    <div class="check section">
+      <h2><span class="num">1</span> The right size &amp; trim</h2>
+      <p>Every print product has a <b>finished (trim) size</b> — the dimensions after it's cut. A standard business card trims to <span class="spec">3.5 × 2 in</span>, a letter flyer to <span class="spec">8.5 × 11 in</span>. If your file is built at the wrong size, or in the wrong orientation, the art gets scaled or rotated to fit and nothing lands where you designed it.</p>
+      <h3>How to get it right</h3>
+      <ul>
+        <li>Build your document at the exact trim size the printer lists.</li>
+        <li>Keep important text and logos at least <span class="spec">0.125 in</span> inside the trim (the "safe margin"), so nothing critical is cut off.</li>
+        <li>Match orientation — a landscape file ordered as portrait will come back rotated.</li>
+      </ul>
+    </div>
+
+    <div class="check">
+      <h2><span class="num">2</span> Bleed</h2>
+      <p>Presses can't cut perfectly to a hairline, so any color or image that's meant to run to the very edge must extend <b>past</b> the trim. That overhang is <b>bleed</b>. Without it, a sliver of white paper shows along the edge when the cut drifts even slightly.</p>
+      <div class="note">Standard bleed is <span class="spec">0.125 in</span> (3 mm) on every side. Large-format pieces like posters and banners usually want <span class="spec">0.25 in</span>.</div>
+      <h3>How to get it right</h3>
+      <ul>
+        <li>Set the bleed in your design app's document setup, and pull any edge artwork out to the bleed line — not just to the trim.</li>
+        <li>Export with <b>crop marks</b> (trim marks) so the printer knows where to cut.</li>
+      </ul>
+    </div>
+
+    <div class="check">
+      <h2><span class="num">3</span> Resolution</h2>
+      <p>Images that look crisp on screen can print blurry. Screens show about 72–96 pixels per inch; a press needs far more detail. Resolution is measured at <b>print size</b> — blowing a small image up to poster size drops its effective resolution fast.</p>
+      <div class="note"><span class="spec">300 DPI</span> at final size is the target for cards, flyers and brochures. <span class="spec">150 DPI</span> is a safe floor for most work; large-format viewed at a distance can go lower.</div>
+      <h3>How to get it right</h3>
+      <ul>
+        <li>Start from high-resolution source images — you can't add detail that isn't there.</li>
+        <li>If an image is too small, place it smaller or find a larger version. Upscaling invents pixels and still looks soft.</li>
+      </ul>
+    </div>
+
+    <div class="check">
+      <h2><span class="num">4</span> Color — CMYK, not RGB</h2>
+      <p>Screens make color with light (<b>RGB</b>); presses make it with ink (<b>CMYK</b>). The bright blues, greens and neons you see on screen often can't be mixed from ink, so when a press converts RGB art it <b>shifts</b> those colors. Your print can come out duller or different than your monitor showed.</p>
+      <h3>How to get it right</h3>
+      <ul>
+        <li>Build or convert your file to <b>CMYK</b> in your design app before sending, so you see the shift and can adjust.</li>
+        <li>Deep, solid black? Use a "rich black" build rather than 100% K alone for large areas (ask your printer for their recipe).</li>
+      </ul>
+    </div>
+
+    <div class="check">
+      <h2><span class="num">5</span> Embedded fonts</h2>
+      <p>A PDF can <b>name</b> a font without actually carrying it. When it reaches a press that doesn't have that exact font, the press substitutes another one — your text reflows, spacing breaks, or a whole different typeface prints. This is one of the most common silent rejections.</p>
+      <h3>How to get it right</h3>
+      <ul>
+        <li>Export your PDF with <b>"embed all fonts"</b> turned on (it's a checkbox in most export dialogs).</li>
+        <li>Or <b>outline/flatten</b> the text to curves so there's no font to miss — just note you can't edit the type afterward.</li>
+      </ul>
+    </div>
+
+    <div class="summary">
+      <h2>The 60-second checklist</h2>
+      <ul>
+        <li><span class="tick">✓</span><span><b>Size:</b> built at the exact trim size, right orientation.</span></li>
+        <li><span class="tick">✓</span><span><b>Bleed:</b> 0.125 in past the trim on every edge (0.25 in large-format), crop marks on.</span></li>
+        <li><span class="tick">✓</span><span><b>Resolution:</b> 300 DPI at final size (150 DPI floor).</span></li>
+        <li><span class="tick">✓</span><span><b>Color:</b> CMYK, not RGB.</span></li>
+        <li><span class="tick">✓</span><span><b>Fonts:</b> embedded or outlined.</span></li>
+      </ul>
+    </div>
+
+    <div class="endcta">
+      <a href="/">Check your file against all five →</a>
+      <p style="font-size:13.5px;color:var(--graphite);margin-top:12px;">Free · 100% private · your file never leaves your browser</p>
+    </div>
+
+    <div class="foot">
+      <a href="/">Will It Print?</a> · <a href="/privacy.html">Privacy</a> · <a href="/terms.html">Terms</a> · © 2026 1Oh1 Design LLC
+    </div>
+  </div>
+</body>
+</html>

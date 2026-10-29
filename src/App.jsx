@@ -81,6 +81,7 @@ function download(bytes, name) {
 }
 
 const FOOT_LINKS = [
+  ['/guide.html', 'Guide'],
   ['/privacy.html', 'Privacy'],
   ['/terms.html', 'Terms'],
   ['mailto:info@1oh1designllc.com?subject=Will%20It%20Print%3F%20feedback', 'Feedback'],
