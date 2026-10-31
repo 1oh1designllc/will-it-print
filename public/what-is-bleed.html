@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>What Is Bleed in Printing? (And How to Add It) — Will It Print?</title>
+<meta name="description" content="Bleed is artwork extended past the trim so the cut never leaves a white edge. Here's what bleed is, why printers require it, the standard 1/8 inch, and how to set it up." />
+<link rel="canonical" href="https://willitprint.io/what-is-bleed.html" />
+<meta name="theme-color" content="#15161A" />
+<meta property="og:type" content="article" />
+<meta property="og:title" content="What Is Bleed in Printing? (And How to Add It)" />
+<meta property="og:description" content="Why your print comes back with a white edge — and the 1/8 inch that fixes it. Then check your file free." />
+<meta property="og:url" content="https://willitprint.io/what-is-bleed.html" />
+<meta property="og:image" content="https://willitprint.io/og-image.png" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="What Is Bleed in Printing?" />
+<meta name="twitter:image" content="https://willitprint.io/og-image.png" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="/article.css" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"What is bleed in printing?","acceptedAnswer":{"@type":"Answer","text":"Bleed is artwork — color or images — extended past the final trim line, so that when the paper is cut, there is still ink where the blade lands and no white edge appears."}},
+{"@type":"Question","name":"How much bleed do I need?","acceptedAnswer":{"@type":"Answer","text":"The standard is 1/8 inch (0.125 in, about 3 mm) on every side. Large-format pieces like posters and banners usually use 1/4 inch."}},
+{"@type":"Question","name":"What happens if I don't add bleed?","acceptedAnswer":{"@type":"Answer","text":"If artwork stops exactly at the trim and the cut drifts even slightly outward, the blade slices into bare paper and you get a thin white strip along the edge."}}]}
+</script>
+</head>
+<body>
+  <div class="wrap">
+    <a class="back" href="/">← Will It Print?</a>
+    <div class="cmyk" aria-hidden="true"><span class="a"></span><span class="b"></span><span class="c"></span><span class="d"></span></div>
+    <h1>What is bleed in printing?</h1>
+    <p class="lead">Bleed is artwork extended past the trim line, so the cut never leaves a white edge. It's the single most common reason print jobs come back looking wrong — and it's an easy fix once you see why it exists.</p>
+
+    <h2>Why bleed exists</h2>
+    <p>Printers don't print one piece and trim it perfectly. They print big sheets, stack them, and cut through the whole stack at once with a blade. A blade cutting hundreds of sheets drifts — just a hair, a fraction of a millimeter — so no printer cuts to a perfect hairline every time. Bleed is how your file plans for that wiggle.</p>
+
+    <h2>Trim, bleed, and safe zone</h2>
+    <p>Three lines do the work:</p>
+    <ul>
+      <li><b>Trim</b> — where the paper actually gets cut. This is your finished size (a business card trims to <span class="spec">3.5 × 2 in</span>).</li>
+      <li><b>Bleed</b> — artwork extended <i>past</i> the trim, your safety margin of extra ink for the blade to cut through.</li>
+      <li><b>Safe zone</b> — <i>inside</i> the trim, where you keep anything important (text, logos) so it never gets cut off.</li>
+    </ul>
+    <div class="note">Standard bleed is <span class="spec">0.125 in</span> (1/8 inch, ~3 mm) on every side. Large-format — posters, banners — usually wants <span class="spec">0.25 in</span>.</div>
+
+    <h2>Why "just to the edge" fails</h2>
+    <p>If your color stops exactly at the trim line and the cut drifts outward by even a fraction, the blade hits bare paper and you get a thin white strip along the edge. With bleed, a drifting cut is still slicing through your artwork — so the edge stays clean every time.</p>
+
+    <h2>How to set up bleed</h2>
+    <ol>
+      <li>Set the bleed in your document setup <b>when you start</b> — most apps (Illustrator, InDesign, Photoshop, Canva, Affinity) have a bleed field right there. Use 0.125 in.</li>
+      <li>Pull any edge color or image <b>out to the bleed line</b>, not just to the trim. A full-bleed background should run all the way to the outer edge.</li>
+      <li>Export your PDF with <b>"Use Document Bleed Settings"</b> and <b>crop marks</b> turned on, so the printer knows exactly where to cut.</li>
+    </ol>
+    <p>So a 3.5 × 2 in card is actually built at <span class="spec">3.75 × 2.25 in</span> with the background running to that larger edge, and the trim marks telling the press to cut back to 3.5 × 2.</p>
+
+    <div class="cta">
+      <h2>Not sure your file has bleed?</h2>
+      <p>Will It Print? checks your bleed in about ten seconds — and actually <b>adds the bleed and crop marks for you</b> on the download. Free, and your file never leaves your browser.</p>
+      <a class="green" href="/">Check my file →</a>
+    </div>
+
+    <div class="faq">
+      <h2>FAQ</h2>
+      <details><summary>Is bleed the same as margin?</summary><div class="ans">No. Bleed is <i>outside</i> the trim (extra artwork for the cut). The margin, or safe zone, is <i>inside</i> the trim (where you keep important content away from the cut).</div></details>
+      <details><summary>Do I need bleed if nothing touches the edge?</summary><div class="ans">If your design has a white border and nothing runs to the edge, you technically don't need bleed — but most printers still ask for a bleed-set file. When in doubt, add it; it never hurts.</div></details>
+      <details><summary>Can I add bleed to a file that doesn't have it?</summary><div class="ans">Sometimes. If the artwork already extends to the page edge, a tool can set the boxes and add crop marks. If the art stops at the trim, there's no extra artwork to pull from — you'd need to extend the design in your app. Will It Print? handles the first case automatically.</div></details>
+    </div>
+
+    <div class="related">
+      <h2>Keep reading</h2>
+      <a href="/rgb-vs-cmyk.html">→ RGB vs CMYK: why your print looks different than your screen</a>
+      <a href="/300-dpi.html">→ 300 DPI: why your images print blurry</a>
+      <a href="/guide.html">→ The full print-ready checklist</a>
+    </div>
+
+    <div class="foot">
+      <a href="/">Will It Print?</a> · <a href="/guide.html">Guide</a> · <a href="/privacy.html">Privacy</a> · © 2026 1Oh1 Design LLC
+    </div>
+  </div>
+</body>
+</html>

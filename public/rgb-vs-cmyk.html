@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>RGB vs CMYK: Why Your Print Looks Different Than Your Screen — Will It Print?</title>
+<meta name="description" content="RGB is screen color (light); CMYK is print color (ink). Here's why your bright screen colors shift when printed, and how to convert to CMYK before you send." />
+<link rel="canonical" href="https://willitprint.io/rgb-vs-cmyk.html" />
+<meta name="theme-color" content="#15161A" />
+<meta property="og:type" content="article" />
+<meta property="og:title" content="RGB vs CMYK: Why Your Print Looks Different Than Your Screen" />
+<meta property="og:description" content="Why bright blues and greens go dull in print — and the one step that puts you back in control. Then check your file free." />
+<meta property="og:url" content="https://willitprint.io/rgb-vs-cmyk.html" />
+<meta property="og:image" content="https://willitprint.io/og-image.png" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="RGB vs CMYK Explained" />
+<meta name="twitter:image" content="https://willitprint.io/og-image.png" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="/article.css" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"What is the difference between RGB and CMYK?","acceptedAnswer":{"@type":"Answer","text":"RGB (red, green, blue) is how screens make color with light — it is additive. CMYK (cyan, magenta, yellow, key/black) is how presses make color with ink — it is subtractive. RGB can show more colors, especially bright blues and greens, than ink can physically mix."}},
+{"@type":"Question","name":"Why does my print look duller than my screen?","acceptedAnswer":{"@type":"Answer","text":"Because your file was RGB and the press converted it to CMYK. Colors that ink can't reproduce get mapped to the nearest printable color, so bright, glowing colors come out flatter."}},
+{"@type":"Question","name":"How do I convert RGB to CMYK?","acceptedAnswer":{"@type":"Answer","text":"In Illustrator: File > Document Color Mode > CMYK. In Photoshop: Image > Mode > CMYK. Converting yourself lets you see the shift and adjust before you send the file to print."}}]}
+</script>
+</head>
+<body>
+  <div class="wrap">
+    <a class="back" href="/">← Will It Print?</a>
+    <div class="cmyk" aria-hidden="true"><span class="a"></span><span class="b"></span><span class="c"></span><span class="d"></span></div>
+    <h1>RGB vs CMYK: why your print looks different than your screen</h1>
+    <p class="lead">Your design looked perfect on screen and came back dull or off-color in print. That's not the printer's mistake — it's RGB vs CMYK, and almost nobody teaches it because you learned design on a screen, not on a press.</p>
+
+    <h2>RGB is light. CMYK is ink.</h2>
+    <p>Your screen makes color with <b>light</b> — red, green and blue mixed together. That's <b>RGB</b>. It's <i>additive</i>: add all three at full and you get white. Screens, phones and cameras are all RGB, and light can make intensely bright, glowing colors.</p>
+    <p>A press doesn't shine light at you — it lays down <b>ink</b> on paper. Four inks: cyan, magenta, yellow, and key (black). That's <b>CMYK</b>. It's <i>subtractive</i>: each ink absorbs some light and reflects the rest back to your eye. More ink means less light bounces back, so the brightest thing CMYK can do is the paper itself.</p>
+
+    <h2>Why the colors shift</h2>
+    <p>RGB can describe far more colors than four inks can physically mix — especially <b>bright blues, greens and neons</b>. When an RGB file hits a CMYK press, every color ink can't reach gets mapped to the <i>closest</i> color it can print. That electric blue becomes a flatter blue; that neon green calms down. Nothing is broken — the press simply can't glow.</p>
+    <div class="note">The danger: if you build in RGB and never check, the <b>first time</b> you see those shifted colors is on the finished print. By then it's too late — and a reprint bill.</div>
+
+    <h2>How to fix it — before you send</h2>
+    <p>Convert to CMYK in your own design app, so <i>you</i> control the shift instead of the press:</p>
+    <ul>
+      <li><b>Illustrator:</b> File → Document Color Mode → CMYK.</li>
+      <li><b>Photoshop:</b> Image → Mode → CMYK.</li>
+      <li><b>InDesign:</b> work in a CMYK document and export PDF/X.</li>
+    </ul>
+    <p>Now you see the shift on your own screen and can adjust — bump the saturation, or pick a color that's actually printable — so what you approve is what comes off the press. For a deep, solid black in large areas, ask your printer for their "rich black" build rather than relying on 100% K alone.</p>
+
+    <div class="cta">
+      <h2>Is your file RGB or CMYK?</h2>
+      <p>Will It Print? reads your color mode in about ten seconds and flags RGB in plain English, so you're never surprised on press. Free, and your file never leaves your browser.</p>
+      <a class="green" href="/">Check my file →</a>
+    </div>
+
+    <div class="faq">
+      <h2>FAQ</h2>
+      <details><summary>Will the printer just convert it for me?</summary><div class="ans">Yes — but with nobody watching. The RIP picks the nearest ink colors automatically, so you don't get to see or approve the shift. Converting yourself keeps you in control.</div></details>
+      <details><summary>Does RGB ever print fine?</summary><div class="ans">Digital/inkjet presses are more forgiving, and neutral colors shift little. But bright, saturated colors are where RGB bites — so for anything color-critical, convert and check first.</div></details>
+      <details><summary>What about Pantone / spot colors?</summary><div class="ans">Pantone (spot) colors are mixed inks for exact brand colors and are separate from CMYK. If you need a precise brand color, talk to your printer about a spot color rather than a process (CMYK) build.</div></details>
+    </div>
+
+    <div class="related">
+      <h2>Keep reading</h2>
+      <a href="/300-dpi.html">→ 300 DPI: why your images print blurry</a>
+      <a href="/what-is-bleed.html">→ What is bleed, and how to add it</a>
+      <a href="/guide.html">→ The full print-ready checklist</a>
+    </div>
+
+    <div class="foot">
+      <a href="/">Will It Print?</a> · <a href="/guide.html">Guide</a> · <a href="/privacy.html">Privacy</a> · © 2026 1Oh1 Design LLC
+    </div>
+  </div>
+</body>
+</html>
