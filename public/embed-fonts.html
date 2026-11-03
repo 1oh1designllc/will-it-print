@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Embedding Fonts in a PDF: Why "It Looks Fine on My Computer" Breaks at the Printer — Will It Print?</title>
+<meta name="description" content="A PDF can name a font without carrying it, so the press substitutes another and your text shifts. Here's how to embed fonts (or outline them) so your type prints exactly as designed." />
+<link rel="canonical" href="https://willitprint.io/embed-fonts.html" />
+<meta name="theme-color" content="#15161A" />
+<meta property="og:type" content="article" />
+<meta property="og:title" content="Embedding Fonts in a PDF (and When to Outline Instead)" />
+<meta property="og:description" content="Why your text changes at the printer — and the checkbox that fixes it. Then check your file free." />
+<meta property="og:url" content="https://willitprint.io/embed-fonts.html" />
+<meta property="og:image" content="https://willitprint.io/og-image.png" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Embedding Fonts in a PDF" />
+<meta name="twitter:image" content="https://willitprint.io/og-image.png" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="/article.css" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"Why do fonts need to be embedded in a PDF?","acceptedAnswer":{"@type":"Answer","text":"A PDF can reference a font by name without including the font itself. If the press doesn't have that exact font, it substitutes another one — so your text reflows, spacing breaks, or a different typeface prints. Embedding puts the font inside the file so it prints exactly as designed."}},
+{"@type":"Question","name":"How do I embed all fonts when exporting a PDF?","acceptedAnswer":{"@type":"Answer","text":"Turn on 'embed all fonts' in the export dialog, or export as PDF/X, which embeds fonts automatically. In Illustrator and InDesign, use a PDF/X preset; in Word, check 'Embed fonts in the file.'"}},
+{"@type":"Question","name":"Should I embed fonts or outline them?","acceptedAnswer":{"@type":"Answer","text":"Embedding keeps the text editable and is the normal choice. Outlining (converting type to curves) guarantees no font can go missing, but you can no longer edit the text and very small type can lose sharpness. Use outlining when you can't embed or aren't sure the font is licensed to embed."}}]}
+</script>
+</head>
+<body>
+  <div class="wrap">
+    <a class="back" href="/">← Will It Print?</a>
+    <div class="cmyk" aria-hidden="true"><span class="a"></span><span class="b"></span><span class="c"></span><span class="d"></span></div>
+    <h1>Embedding fonts: why "it looks fine on my computer" breaks at the printer</h1>
+    <p class="lead">A PDF can name a font without actually carrying it. When it reaches a press that doesn't have that exact font, the press substitutes another one — your text reflows, spacing breaks, or a whole different typeface prints. It's one of the most common silent rejections.</p>
+
+    <h2>Why it happens</h2>
+    <p>The font lives on <i>your</i> computer, not inside the file. So the PDF just says "set this in Brandon Grotesque" and trusts that whatever opens it has that font. Your machine does, so it looks perfect to you. The printer's RIP doesn't — so it swaps in something close, and your careful layout shifts. You never see it until the proof comes back.</p>
+
+    <h2>Fix 1: embed all fonts (the normal choice)</h2>
+    <p>Embedding packs the actual font data inside the PDF, so the press always has it. Keep your text editable and prints exactly as drawn.</p>
+    <ul>
+      <li><b>Illustrator / InDesign:</b> export with a <b>PDF/X</b> preset (PDF/X-1a or X-4) — it embeds fonts automatically. Or in the export dialog, make sure subsetting is set so all fonts embed.</li>
+      <li><b>Canva / Affinity:</b> use "PDF for Print" — fonts embed by default.</li>
+      <li><b>Word / Publisher:</b> File → Options → Save → <b>Embed fonts in the file</b>, then export as PDF.</li>
+    </ul>
+
+    <h2>Fix 2: outline the text (belt-and-suspenders)</h2>
+    <p>Outlining converts your type to vector curves — there's no font left to go missing, so nothing can substitute. The trade-off: you can no longer edit the text, and very small type can lose a little crispness (no hinting). Use it when you can't embed, or when a font's license doesn't allow embedding.</p>
+    <ul>
+      <li><b>Illustrator:</b> select the type → Type → <b>Create Outlines</b> (Shift+Ctrl+O).</li>
+      <li><b>InDesign:</b> Type → Create Outlines (do it on a copy — it's not reversible).</li>
+    </ul>
+    <div class="note"><b>Tip:</b> keep an editable master file, and only embed or outline on the <i>exported</i> copy you send to print — so you can still make changes later.</div>
+
+    <div class="cta">
+      <h2>Are your fonts actually embedded?</h2>
+      <p>Will It Print? reads every font in your PDF and tells you if any aren't embedded — in plain English, in about ten seconds. Free, and your file never leaves your browser.</p>
+      <a class="green" href="/">Check my file →</a>
+    </div>
+
+    <div class="faq">
+      <h2>FAQ</h2>
+      <details><summary>How do I check if fonts are embedded?</summary><div class="ans">In Acrobat: File → Properties → Fonts tab — embedded fonts say "(Embedded)" or "(Embedded Subset)". Or just run the PDF through Will It Print?, which flags any that aren't.</div></details>
+      <details><summary>Do standard fonts like Arial need embedding?</summary><div class="ans">Most presses have the standard fonts, so it usually works — but "usually" isn't "always." Embedding removes all doubt, so embed everything.</div></details>
+      <details><summary>Does outlining reduce quality?</summary><div class="ans">Not at normal sizes — outlines are vector and stay sharp. Very small text can look slightly less crisp because it loses font hinting, so for tiny type, prefer embedding.</div></details>
+    </div>
+
+    <div class="related">
+      <h2>Keep reading</h2>
+      <a href="/print-ready-pdf.html">→ How to make a print-ready PDF</a>
+      <a href="/raster-vs-vector.html">→ Raster vs vector: which to use for print</a>
+      <a href="/guide.html">→ The full print-ready checklist</a>
+    </div>
+
+    <div class="foot">
+      <a href="/">Will It Print?</a> · <a href="/guide.html">Guide</a> · <a href="/privacy.html">Privacy</a> · © 2026 1Oh1 Design LLC
+    </div>
+  </div>
+</body>
+</html>

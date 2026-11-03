@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Rich Black vs Plain Black: Why Your Big Black Areas Look Washed Out — Will It Print?</title>
+<meta name="description" content="100% K alone prints as a flat, slightly grey black. For large solid areas, use a rich black (K plus some C/M/Y). Here's the values to use, the ink-limit to avoid, and when to keep plain black." />
+<link rel="canonical" href="https://willitprint.io/rich-black.html" />
+<meta name="theme-color" content="#15161A" />
+<meta property="og:type" content="article" />
+<meta property="og:title" content="Rich Black vs Plain Black (and the Values to Use)" />
+<meta property="og:description" content="Why your solid black prints grey — and the CMYK build that fixes it. Then check your file free." />
+<meta property="og:url" content="https://willitprint.io/rich-black.html" />
+<meta property="og:image" content="https://willitprint.io/og-image.png" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Rich Black vs Plain Black" />
+<meta name="twitter:image" content="https://willitprint.io/og-image.png" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="/article.css" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"What is rich black?","acceptedAnswer":{"@type":"Answer","text":"Rich black is a black built from 100% K plus some cyan, magenta, and yellow, instead of black ink alone. The extra ink makes large solid areas look deep and even instead of flat and slightly grey."}},
+{"@type":"Question","name":"What CMYK values should I use for rich black?","acceptedAnswer":{"@type":"Answer","text":"A common rich black is around C40 M30 Y30 K100, keeping total ink coverage near 300%. Many printers have their own preferred recipe, so ask yours. Avoid 100% of all four inks (400%), which can't dry and will smear."}},
+{"@type":"Question","name":"Should I use rich black for text?","acceptedAnswer":{"@type":"Answer","text":"No. Use plain 100% K for small text and thin lines. Rich black uses four inks that must line up perfectly; if they shift even slightly on small type you get a colored halo. Save rich black for large solid areas."}}]}
+</script>
+</head>
+<body>
+  <div class="wrap">
+    <a class="back" href="/">← Will It Print?</a>
+    <div class="cmyk" aria-hidden="true"><span class="a"></span><span class="b"></span><span class="c"></span><span class="d"></span></div>
+    <h1>Rich black vs plain black</h1>
+    <p class="lead">Your big black background printed as a flat, slightly grey black instead of a deep solid. That's plain black — 100% K alone. For large solid areas you want a <b>rich black</b>, built from black plus a little of the other inks.</p>
+
+    <h2>Why plain black looks thin</h2>
+    <p>A single layer of black ink isn't fully opaque — some paper shows through, so a large area of 100% K reads as a washed-out, almost charcoal black. It can also look uneven across a big fill. Fine for text; disappointing for a full-bleed black background.</p>
+
+    <h2>What rich black is</h2>
+    <p>Rich black lays black ink <i>plus</i> a base of cyan, magenta, and/or yellow underneath, so the area reads as a deep, even, true black. A common build:</p>
+    <div class="note"><b>Rich black:</b> around <span class="spec">C40 M30 Y30 K100</span>. Keep <b>total ink coverage near 300%</b>. Many presses have their own preferred recipe — <b>ask your printer</b>, since it depends on the stock and press.</div>
+
+    <h2>Don't overdo it — the ink limit</h2>
+    <p>More ink isn't always better. If you stack 100% of all four inks (that's 400% coverage), the paper can't absorb or dry it — it stays wet, smears, offsets onto the next sheet, and can crack. That's why rich black stays around 300%, not 400%. This cap is called the <b>total area coverage (TAC)</b> limit.</p>
+
+    <h2>When to use plain black instead</h2>
+    <p>Use plain <span class="spec">K100</span> for <b>small text and thin lines</b>. Rich black uses four inks that have to register (line up) perfectly; on small type, even a hair of misregistration shows as a colored fringe around the letters. So: rich black for big solid areas, plain black for text.</p>
+
+    <div class="cta">
+      <h2>Check your file before it prints</h2>
+      <p>Will It Print? flags color issues like RGB-instead-of-CMYK before they cost you a reprint — free, in your browser, in about ten seconds.</p>
+      <a class="green" href="/">Check my file →</a>
+    </div>
+
+    <div class="faq">
+      <h2>FAQ</h2>
+      <details><summary>Why does my black look grey / faded?</summary><div class="ans">Almost always because it's 100% K alone over a large area. Rebuild those big black fills as a rich black (K100 plus a C/M/Y base) and they'll read deep and even.</div></details>
+      <details><summary>What's the max ink coverage?</summary><div class="ans">Most presses cap total ink coverage around 300% (coated stock) and lower for uncoated. Going near 400% causes smearing and drying problems, which is why rich black isn't just "100% of everything."</div></details>
+      <details><summary>Does this matter for digital printing?</summary><div class="ans">Less than offset, but still yes — large K-only areas can look flat on digital too. When it matters, use a modest rich black and test.</div></details>
+    </div>
+
+    <div class="related">
+      <h2>Keep reading</h2>
+      <a href="/rgb-vs-cmyk.html">→ RGB vs CMYK: why your print looks different than your screen</a>
+      <a href="/print-ready-pdf.html">→ How to make a print-ready PDF</a>
+      <a href="/guide.html">→ The full print-ready checklist</a>
+    </div>
+
+    <div class="foot">
+      <a href="/">Will It Print?</a> · <a href="/guide.html">Guide</a> · <a href="/privacy.html">Privacy</a> · © 2026 1Oh1 Design LLC
+    </div>
+  </div>
+</body>
+</html>
