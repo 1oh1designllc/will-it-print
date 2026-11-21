@@ -20,7 +20,7 @@ const IN = 72;
 const intent = { trimSize: { width: 3.5 * IN, height: 2 * IN }, product: 'business-card', printMethod: 'offset', sides: 2, quantity: 100, requestedBleed: null };
 const ruleset = resolveRuleset(intent);
 
-async function makePdf(mediaW, mediaH, boxes, { rgbImage = false, fill = null, cmykFill = null, spot = null } = {}) {
+async function makePdf(mediaW, mediaH, boxes, { rgbImage = false, fill = null, cmykFill = null, spot = null, insetFill = null } = {}) {
   const doc = await PDFDocument.create();
   const { rgb, cmyk, PDFName } = await import('pdf-lib');
   const page = doc.addPage([mediaW, mediaH]);
@@ -28,6 +28,10 @@ async function makePdf(mediaW, mediaH, boxes, { rgbImage = false, fill = null, c
   if (boxes.bleed) page.setBleedBox(...boxes.bleed);
   if (fill) page.drawRectangle({ x: 0, y: 0, width: mediaW, height: mediaH, color: rgb(...fill) });
   if (cmykFill) page.drawRectangle({ x: 0, y: 0, width: mediaW, height: mediaH, color: cmyk(...cmykFill) });
+  if (insetFill) { // a chromatic block that stops short of the edge (a design with a margin)
+    const m = insetFill.margin ?? 24;
+    page.drawRectangle({ x: m, y: m, width: mediaW - 2 * m, height: mediaH - 2 * m, color: cmyk(0.8, 0.2, 0.1, 0) });
+  }
   if (spot) {
     // Declare a Separation (spot) colour space in the page resources. The parser
     // detects spot plates by scanning ColorSpace resources, so declaring it is
@@ -96,6 +100,16 @@ const cases = [
   { label: 'process-named separation is not a spot', verdict: 'ready',
     make: () => makePdf(294, 186, { trim: [21, 21, 252, 144], bleed: [12, 12, 270, 162] }, { cmykFill: [0.8, 0.2, 0.1, 0], spot: 'Cyan' }),
     check: (v) => !v.rows.some((r) => r.label === 'Color' && /spot color/i.test(r.msg)) },
+  // Bleed is only needed where art runs to the cut. A design inset from the trim
+  // (white margin all round) with NO bleed must PASS — not be told to add bleed.
+  { label: 'inset design needs no bleed', verdict: 'ready',
+    make: () => makePdf(252, 144, { trim: [0, 0, 252, 144], bleed: [0, 0, 252, 144] }, { insetFill: { margin: 24 } }),
+    check: (v) => v.rows.some((r) => r.label === 'Bleed' && r.status === 'pass' && /no bleed needed/i.test(r.msg)) },
+  // The safety guard: a FULL-BLEED fill with no bleed must still FAIL — ink runs
+  // to the edge, so the inset suppression must not fire.
+  { label: 'full-bleed fill, no bleed = still fixable', verdict: 'fixable',
+    make: () => makePdf(252, 144, { trim: [0, 0, 252, 144], bleed: [0, 0, 252, 144] }, { cmykFill: [0.8, 0.2, 0.1, 0] }),
+    check: (v) => v.rows.some((r) => r.label === 'Bleed' && r.status === 'fail' && r.fix) },
 ];
 
 let fail = 0;

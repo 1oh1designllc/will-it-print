@@ -306,8 +306,9 @@ export async function parsePdf(data, filename, intent) {
   try {
     const perPage = await extractImagesPerPage(bytes); // module copies + normalizes
     rawPages.forEach((rp, i) => {
-      const pg = perPage[i] || { images: [], colors: new Set() };
+      const pg = perPage[i] || { images: [], colors: new Set(), inkBox: null };
       rp.images = pg.images;
+      rp.inkBox = pg.inkBox;      // bounds of non-white ink, for the bleed check
       rp.imagesKnown = true;
       const base = new Set([...rp._imageColors, ...rp._vectorColors]);
       if (base.size === 0) for (const c of pg.colors) base.add(c); // fallback only

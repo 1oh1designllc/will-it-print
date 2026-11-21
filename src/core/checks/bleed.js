@@ -57,7 +57,29 @@ export const bleedChecker = {
         });
       }
 
-      // Short somewhere. Build the fix regardless of severity.
+      // Short on bleed — but bleed is only needed where artwork runs to the cut.
+      // If the design sits comfortably inside the trim (a white margin on every
+      // side), there's nothing to bleed, so a shortfall is not a problem. We only
+      // suppress when we actually measured ink AND it clears the trim by at least
+      // a full bleed's width on all sides — the safe, no-false-reassurance side.
+      const ink = page.inkBox, media = page.boxes.media, trim = page.boxes.trim;
+      if (ink && media && trim) {
+        const tl = trim.x - media.x, tb = trim.y - media.y;
+        const inset = Math.min(
+          ink.x0 - tl,                      // left
+          ink.y0 - tb,                      // bottom
+          (tl + trim.width) - ink.x1,       // right
+          (tb + trim.height) - ink.y1,      // top
+        );
+        if (inset >= required) {
+          return pass(ID, `Page ${page.index + 1}: your design stays ${mm(inset)} inside the trim on every side — it doesn't run to the edge, so no bleed is needed here.`, {
+            page: page.index,
+            detail: { margins, required, noBleedNeeded: true },
+          });
+        }
+      }
+
+      // Build the fix regardless of severity.
       const fixAction = {
         type: 'add-bleed',
         params: { amount: required, page: page.index },

@@ -35,6 +35,7 @@ const P = {
     const d = f.detail || {};
     const worst = d.margins ? Math.min(d.margins.left, d.margins.right, d.margins.top, d.margins.bottom) : null;
     const line = worst != null ? `${mm(worst)} mm on the tightest side  (${mm(d.required)} mm required)` : '';
+    if (f.status === 'pass' && d.noBleedNeeded) return { msg: 'No bleed needed — your design doesn’t run to the edge.', why: 'The artwork sits inside the trim with a clear margin, so nothing can show a white sliver at the cut.', data: 'Artwork stays inside the trim' };
     if (f.status === 'pass') return { msg: 'The design runs past the cut on every side.', why: 'Enough overrun to survive trimming.', data: line };
     if (f.status === 'unverified') return { msg: 'We couldn’t check bleed on this file.', why: 'It doesn’t declare trim/bleed the way a print PDF does.', data: 'No bleed data in the file', guidance: 'Add bleed in your design app, or tell us the trim size.' };
     if (f.status === 'warn') return { msg: 'Looks short on bleed — but the trim was inferred.', why: 'We guessed the trim, so treat this as a heads-up.', data: line };
