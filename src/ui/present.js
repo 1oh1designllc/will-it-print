@@ -56,7 +56,11 @@ const P = {
     if (f.status === 'pass') return { msg: 'Print-ready colors.', why: 'Already in the press color space.', data: `${cs} — correct for this method` };
     if (f.status === 'unverified') return { msg: 'Color mode hasn’t been checked in this file yet.', why: 'Reading colour from PDFs is coming next; for images it’s checked already.', data: null };
     if (f.status === 'warn') {
-      if (d.colorSpace === 'spot') return { msg: 'Uses a spot color this method prints as process.', why: 'Often an unexpected extra plate — unless you meant a Pantone.', data: `Spot → ${proc}`, guidance: `If it’s meant to be a Pantone, tell your printer; otherwise convert it to ${proc} in your design app.` };
+      if (d.colorSpace === 'spot') {
+        const names = (d.spots || []).join(', ');
+        const one = (d.spots || []).length === 1;
+        return { msg: names ? `Uses a spot color (${names}).` : 'Uses a spot color.', why: `Each spot prints as its own plate — an extra cost unless you meant a Pantone.`, data: names ? `Spot: ${names}` : `Spot → ${proc}`, guidance: `If the Pantone is intentional, tell your printer; otherwise convert ${one ? 'it' : 'them'} to ${proc} in your design app.` };
+      }
       return { msg: `Built in ${cs} — colors will shift toward ${proc} on press.`, why: `Screen ${cs} can’t print exactly; bright blues and greens move most. An in-browser convert can’t match a real profile.`, data: `${cs} → ${proc}`, guidance: `Convert to ${proc} in your design app before printing, then re-check.` };
     }
     // Fallback (no longer emitted — RGB is a warning now): keep for safety.

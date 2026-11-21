@@ -20,13 +20,25 @@ const IN = 72;
 const intent = { trimSize: { width: 3.5 * IN, height: 2 * IN }, product: 'business-card', printMethod: 'offset', sides: 2, quantity: 100, requestedBleed: null };
 const ruleset = resolveRuleset(intent);
 
-async function makePdf(mediaW, mediaH, boxes, { rgbImage = false, fill = null } = {}) {
+async function makePdf(mediaW, mediaH, boxes, { rgbImage = false, fill = null, cmykFill = null, spot = null } = {}) {
   const doc = await PDFDocument.create();
-  const { rgb } = await import('pdf-lib');
+  const { rgb, cmyk, PDFName } = await import('pdf-lib');
   const page = doc.addPage([mediaW, mediaH]);
   if (boxes.trim) page.setTrimBox(...boxes.trim);
   if (boxes.bleed) page.setBleedBox(...boxes.bleed);
   if (fill) page.drawRectangle({ x: 0, y: 0, width: mediaW, height: mediaH, color: rgb(...fill) });
+  if (cmykFill) page.drawRectangle({ x: 0, y: 0, width: mediaW, height: mediaH, color: cmyk(...cmykFill) });
+  if (spot) {
+    // Declare a Separation (spot) colour space in the page resources. The parser
+    // detects spot plates by scanning ColorSpace resources, so declaring it is
+    // enough to exercise the path — no need to paint with it.
+    const ctx = doc.context;
+    const tint = ctx.obj({ FunctionType: 2, Domain: [0, 1], C0: [0, 0, 0, 0], C1: [0, 0, 0, 1], N: 1 });
+    const sep = ctx.obj([PDFName.of('Separation'), PDFName.of(spot), PDFName.of('DeviceCMYK'), tint]);
+    const resources = page.node.get(PDFName.of('Resources'));
+    const csDict = ctx.obj({ Spot0: sep });
+    resources.set(PDFName.of('ColorSpace'), csDict);
+  }
   if (rgbImage) {
     // a 1x1 RGB PNG, drawn on the page -> DeviceRGB image XObject
     const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAC0lEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==', 'base64');
@@ -69,6 +81,21 @@ const cases = [
   { label: 'black-only vector = ready', verdict: 'ready',
     make: () => makePdf(294, 186, { trim: [21, 21, 252, 144], bleed: [12, 12, 270, 162] }, { fill: [0, 0, 0] }),
     check: (v) => v.rows.some((r) => r.label === 'Color' && r.status === 'pass') },
+  // Chromatic CMYK VECTOR must read as CMYK and PASS. Guards the regression
+  // where pdf.js flattened CMYK fills to RGB, falsely warning on real CMYK art.
+  { label: 'chromatic CMYK vector = ready (not false RGB)', verdict: 'ready',
+    make: () => makePdf(294, 186, { trim: [21, 21, 252, 144], bleed: [12, 12, 270, 162] }, { cmykFill: [0.8, 0.2, 0.1, 0] }),
+    check: (v) => v.rows.some((r) => r.label === 'Color' && r.status === 'pass')
+      && !v.rows.some((r) => r.label === 'Color' && /RGB/.test(r.msg)) },
+  // A declared Separation (spot) plate must surface as a Color warning naming
+  // the ink — a real extra-plate cost. Spot is advisory, so verdict stays READY.
+  { label: 'spot plate flagged (named)', verdict: 'ready',
+    make: () => makePdf(294, 186, { trim: [21, 21, 252, 144], bleed: [12, 12, 270, 162] }, { cmykFill: [0.8, 0.2, 0.1, 0], spot: 'PANTONE 1945 U' }),
+    check: (v) => v.rows.some((r) => r.label === 'Color' && r.status === 'warn' && /PANTONE 1945 U/.test(r.msg)) },
+  // Separations named for a process ink are NOT spot plates -> no spot warning.
+  { label: 'process-named separation is not a spot', verdict: 'ready',
+    make: () => makePdf(294, 186, { trim: [21, 21, 252, 144], bleed: [12, 12, 270, 162] }, { cmykFill: [0.8, 0.2, 0.1, 0], spot: 'Cyan' }),
+    check: (v) => !v.rows.some((r) => r.label === 'Color' && /spot color/i.test(r.msg)) },
 ];
 
 let fail = 0;

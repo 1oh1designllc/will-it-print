@@ -14,7 +14,7 @@
  *
  * pdf-lib runs in the browser AND in Node, so this path is testable headless.
  */
-import { PDFDocument, PDFName, PDFDict, PDFArray, PDFRawStream } from 'pdf-lib';
+import { PDFDocument, PDFName, PDFDict, PDFArray, PDFRawStream, decodePDFRawStream } from 'pdf-lib';
 import { buildPdfModel } from './pdf-model.js';
 import { extractImagesPerPage } from './pdf-dpi.js';
 import { ColorSpace } from '../core/canonical-model.js';
@@ -91,6 +91,96 @@ function reduceColor(set) {
   if (has(ColorSpace.CMYK)) return ColorSpace.CMYK;
   if (has(ColorSpace.GRAY)) return ColorSpace.GRAY;
   return ColorSpace.UNKNOWN;
+}
+
+// --- Vector colour & spot plates, read straight from the content stream ------
+// pdf.js flattens DeviceCMYK and Separation (spot) VECTOR fills to RGB in its
+// operator list, so genuine CMYK art read as "RGB" and spot (Pantone) plates
+// were invisible. We read colour from the decoded page content ourselves, which
+// sees the real device operators and the named Separation/DeviceN colour spaces.
+
+const latin1 = (u8) => new TextDecoder('latin1').decode(u8);
+
+// Decode a PDF name's #XX hex escapes: "PANTONE#201945#20U" -> "PANTONE 1945 U".
+const decodeName = (s) => (s || '').replace(/^\//, '')
+  .replace(/#([0-9A-Fa-f]{2})/g, (_, h) => String.fromCharCode(parseInt(h, 16)));
+
+// Scan decoded content-stream text for chromatic device colour. A neutral set
+// (black text as 0 0 0 rg, white, pure K) must NOT flag as RGB/CMYK — it prints
+// fine as K — so only chromatic fills count, mirroring the image-colour rules.
+function scanVectorColors(txt) {
+  const out = new Set();
+  const num = '(-?\\d*\\.?\\d+)';
+  const sp = '\\s+';
+  let m;
+  const rg = new RegExp(num + sp + num + sp + num + sp + '(rg|RG)(?=[^A-Za-z]|$)', 'g');
+  while ((m = rg.exec(txt))) { const r = +m[1], g = +m[2], b = +m[3]; out.add(r === g && g === b ? 'gray' : 'rgb'); }
+  const k = new RegExp(num + sp + num + sp + num + sp + num + sp + '(k|K)(?=[^A-Za-z]|$)', 'g');
+  while ((m = k.exec(txt))) { const c = +m[1], mg = +m[2], y = +m[3]; out.add(c || mg || y ? 'cmyk' : 'gray'); }
+  // scn/SCN with 3 or 4 numeric operands = ICCBased/Device RGB or CMYK set via cs.
+  const scn = new RegExp('(?:' + num + sp + '){3,4}(scn|SCN)(?=[^A-Za-z]|$)', 'g');
+  while ((m = scn.exec(txt))) {
+    const nums = m[0].trim().split(/\s+/).slice(0, -1).map(Number);
+    if (nums.length === 4) { out.add(nums[0] || nums[1] || nums[2] ? 'cmyk' : 'gray'); }
+    else if (nums.length === 3) { out.add(nums[0] === nums[1] && nums[1] === nums[2] ? 'gray' : 'rgb'); }
+  }
+  return out;
+}
+
+// One page's content text (own streams + Form XObject streams, recursively) and
+// the set of spot (Separation / DeviceN) ink names declared in its resources.
+function contentAndSpots(page, ctx) {
+  const parts = [];
+  const spots = new Set();
+  const seen = new Set();
+  const decode = (s) => { try { return latin1(decodePDFRawStream(s).decode()); } catch { return ''; } };
+
+  // Separations named for a process ink (or the special All/None) are NOT extra
+  // plates — they're just CMYK expressed channel-by-channel. Only true named
+  // inks (Pantones, varnishes, metallics) count as spot plates.
+  const PROCESS = new Set(['cyan', 'magenta', 'yellow', 'black', 'all', 'none']);
+  const addSpot = (o) => {
+    if (!(o instanceof PDFArray)) return;
+    const head = o.get(0);
+    const nm = head instanceof PDFName ? head.asString() : '';
+    const keep = (raw) => { const n = decodeName(raw); if (n && !PROCESS.has(n.trim().toLowerCase())) spots.add(n); };
+    if (nm === '/Separation') {
+      const n = o.get(1);
+      keep(n instanceof PDFName ? n.asString() : 'Spot');
+    } else if (nm === '/DeviceN') {
+      const names = ctx.lookup(o.get(1));
+      if (names instanceof PDFArray) names.asArray().forEach((x) => {
+        const v = ctx.lookup(x);
+        if (v instanceof PDFName) keep(v.asString());
+      });
+    }
+  };
+
+  const walk = (resources) => {
+    if (!resources) return;
+    const csd = ctx.lookupMaybe(resources.get(PDFName.of('ColorSpace')), PDFDict);
+    if (csd) for (const [, ref] of csd.entries()) addSpot(ctx.lookup(ref));
+    const xo = ctx.lookupMaybe(resources.get(PDFName.of('XObject')), PDFDict);
+    if (xo) for (const [, ref] of xo.entries()) {
+      if (seen.has(ref)) continue; seen.add(ref);
+      const x = ctx.lookup(ref);
+      const dict = x?.dict || x;
+      if (!(dict instanceof PDFDict)) continue;
+      const sub = dict.get(PDFName.of('Subtype'));
+      if (sub instanceof PDFName && sub.asString() === '/Form') {
+        if (x instanceof PDFRawStream) parts.push(decode(x));
+        walk(ctx.lookupMaybe(dict.get(PDFName.of('Resources')), PDFDict));
+      }
+    }
+  };
+
+  // Top-level page content (single stream or array of streams).
+  let node = ctx.lookup(page.node.get(PDFName.of('Contents')));
+  const streams = node instanceof PDFArray ? node.asArray().map((r) => ctx.lookup(r)) : [node];
+  for (const s of streams) if (s instanceof PDFRawStream) parts.push(decode(s));
+
+  walk(ctx.lookupMaybe(page.node.get(PDFName.of('Resources')), PDFDict));
+  return { colors: scanVectorColors(parts.join('\n')), spots: [...spots] };
 }
 
 // --- Font embedding ---------------------------------------------------------
@@ -191,12 +281,15 @@ export async function parsePdf(data, filename, intent) {
   const ctx = pdf.context;
   const rawPages = pdf.getPages().map((p) => {
     const mb = p.getMediaBox();
+    const cas = contentAndSpots(p, ctx);     // real vector colours + spot plates
     return {
       media: { x: mb.x, y: mb.y, width: mb.width, height: mb.height },
       trim: rawBox(p, 'TrimBox'),
       bleed: rawBox(p, 'BleedBox'),
       crop: rawBox(p, 'CropBox'),
-      _imageColors: imageColorSet(p, ctx),  // from images; vectors added below
+      _imageColors: imageColorSet(p, ctx),   // from images (object graph)
+      _vectorColors: cas.colors,             // from decoded content stream
+      spots: cas.spots,                      // Separation / DeviceN ink names
       colorSpace: ColorSpace.UNKNOWN,
       imagesKnown: false,                    // set true below once DPI is read
       hasVector: true,
@@ -205,20 +298,27 @@ export async function parsePdf(data, filename, intent) {
     };
   });
 
-  // Best-effort pdf.js pass: content images (for DPI) + vector colours. Colour
-  // is image colours ∪ vector colours, so a vector-only card is judged too. On
-  // any failure, resolution stays "not checked" and colour falls back to images.
+  // Colour verdict = image colours ∪ real vector colours (read from the content
+  // stream above). We deliberately do NOT use pdf.js's vector colours here: it
+  // flattens CMYK/spot fills to RGB, which falsely flagged CMYK art as RGB. The
+  // pdf.js pass still runs — for image DPI, and as a last-resort colour fallback
+  // only when we read nothing ourselves (an unreadable/edge-case content stream).
   try {
     const perPage = await extractImagesPerPage(bytes); // module copies + normalizes
     rawPages.forEach((rp, i) => {
       const pg = perPage[i] || { images: [], colors: new Set() };
       rp.images = pg.images;
       rp.imagesKnown = true;
-      rp.colorSpace = reduceColor(new Set([...rp._imageColors, ...pg.colors]));
-      delete rp._imageColors;
+      const base = new Set([...rp._imageColors, ...rp._vectorColors]);
+      if (base.size === 0) for (const c of pg.colors) base.add(c); // fallback only
+      rp.colorSpace = reduceColor(base);
+      delete rp._imageColors; delete rp._vectorColors;
     });
   } catch {
-    rawPages.forEach((rp) => { rp.colorSpace = reduceColor(rp._imageColors); delete rp._imageColors; });
+    rawPages.forEach((rp) => {
+      rp.colorSpace = reduceColor(new Set([...rp._imageColors, ...rp._vectorColors]));
+      delete rp._imageColors; delete rp._vectorColors;
+    });
   }
 
   return buildPdfModel(rawPages, filename, intent);

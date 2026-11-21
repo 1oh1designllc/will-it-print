@@ -121,6 +121,7 @@ export function buildPdfModel(rawPages, filename, intent) {
     const { media, trim, bleed, inferred, usedCropAsTrim } = resolveBoxes(raw, intent);
     const page = createPage({ index: i, media, trim, bleed, inferred, imagesKnown: raw.imagesKnown ?? true });
     page.colorSpace = raw.colorSpace ?? ColorSpace.UNKNOWN;
+    page.spots = raw.spots ?? [];
     page.hasVector = !!raw.hasVector;
     page.fonts = raw.fonts ?? [];
     page.fontsKnown = raw.fontsKnown ?? false;
