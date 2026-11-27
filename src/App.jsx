@@ -5,6 +5,10 @@ import ResultV2 from './ui/ResultV2.jsx';
 import BackdropV2 from './ui/BackdropV2.jsx';
 import Press from './ui/Press.jsx';
 import { activeShop } from './shops.js';
+import { consumeUnlock, blocked, recordCheck, metered, isPro, checksLeft, FREE_LIMIT, PRO_SUB_LINK } from './meter.js';
+
+// Honor a ?pro=<token> unlock link once, at load, before anything renders.
+const JUST_UNLOCKED = consumeUnlock();
 
 // V2 (slide-in results + Paper/Ink background) is the default now.
 // ?ui=legacy restores the original video/results page for comparison or rollback.
@@ -141,11 +145,69 @@ function Footer({ v2, bgMode, setBg, shop }) {
   );
 }
 
+// Slim status strip shown on the intake screen once metering is live: either
+// "Pro — unlimited" or "N free checks left this month" with an upgrade link.
+function MeterBar() {
+  if (!metered()) return null;
+  const pro = isPro();
+  const left = checksLeft();
+  return (
+    <div style={{ position: 'relative', zIndex: 2, maxWidth: 680, margin: '0 auto', padding: '8px 20px', display: 'flex', alignItems: 'center',
+      gap: 10, fontFamily: FONT, fontSize: 12.5, color: '#2C2C31' }}>
+      {pro ? (
+        <span style={{ fontWeight: 700, color: '#1E7A4D' }}>✓ Pro — unlimited checks</span>
+      ) : (
+        <>
+          <span style={{ fontWeight: 700 }}>
+            {left > 0 ? `${left} free check${left === 1 ? '' : 's'} left this month` : 'No free checks left this month'}
+          </span>
+          {PRO_SUB_LINK && (
+            <a href={PRO_SUB_LINK} target="_blank" rel="noopener noreferrer"
+              style={{ marginLeft: 'auto', fontWeight: 800, color: '#fff', background: '#15161A',
+                textDecoration: 'none', padding: '6px 13px', borderRadius: 100 }}>Go Pro · $9/mo →</a>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
+// Upgrade screen shown when a free user is out of checks for the month.
+function LimitGate({ onBack }) {
+  return (
+    <div style={{ position: 'relative', zIndex: 2, maxWidth: 560, margin: '48px auto', padding: '0 20px', fontFamily: FONT, textAlign: 'center' }}>
+      <div style={{ display: 'flex', gap: 6, justifyContent: 'center', marginBottom: 18 }}>
+        {['#00AEEF', '#EC008C', '#FFE000', '#15161A'].map((c) => (
+          <span key={c} style={{ width: 26, height: 10, background: c, display: 'block' }} />
+        ))}
+      </div>
+      <h2 style={{ fontSize: 26, fontWeight: 900, letterSpacing: '-.02em', color: '#15161A', margin: '0 0 10px' }}>
+        You’ve used your {FREE_LIMIT} free check{FREE_LIMIT === 1 ? '' : 's'} this month
+      </h2>
+      <p style={{ fontSize: 15.5, color: '#2C2C31', margin: '0 0 22px', lineHeight: 1.5 }}>
+        Go Pro for <b>unlimited checks</b> — ${'⁠'}9/month, cancel anytime. It unlocks the moment you subscribe.
+      </p>
+      {PRO_SUB_LINK && (
+        <a href={PRO_SUB_LINK} target="_blank" rel="noopener noreferrer"
+          style={{ display: 'inline-block', fontSize: 16, fontWeight: 800, color: '#fff', background: '#1E7A4D',
+            textDecoration: 'none', padding: '14px 26px' }}>Go Pro — $9/mo →</a>
+      )}
+      <p style={{ marginTop: 20 }}>
+        <button onClick={onBack} style={{ border: 'none', background: 'none', color: '#4A4A50', fontFamily: FONT,
+          fontSize: 13.5, fontWeight: 600, cursor: 'pointer', textDecoration: 'underline' }}>Maybe later</button>
+      </p>
+      <p style={{ marginTop: 14, fontSize: 12, color: '#8A8A90' }}>
+        Your free checks reset on the 1st. Pro is instant and your files never leave your browser.
+      </p>
+    </div>
+  );
+}
+
 export default function App() {
   const [stage, setStage] = useState('intake');
   const [job, setJob] = useState(null);   // { view, doc, result, source, intent }
   const [error, setError] = useState('');
-  const [status, setStatus] = useState('');
+  const [status, setStatus] = useState(JUST_UNLOCKED ? 'Pro unlocked — unlimited checks. ✓' : '');
   const [fitMode, setFitMode] = useState('proportional'); // wrong-shape fit choice
   const [orig, setOrig] = useState(null);   // unrotated source + base intent
   const [rotation, setRotation] = useState(0); // artwork turns (0/90/180/270)
@@ -187,6 +249,9 @@ export default function App() {
   }
 
   async function handleAnalyze(file, intent) {
+    // Free-tier gate: out of free checks and not Pro -> show the upgrade screen
+    // instead of running. (Dormant until a Pro checkout link exists.)
+    if (blocked()) { setStage('limit'); return; }
     setStage('analyzing'); setStatus(''); setFitMode('proportional');
     setRotation(0);
     try {
@@ -195,6 +260,7 @@ export default function App() {
       const source = { kind, bytes, name: file.name, imageType: kind === 'raster' ? imageType(file.name) : undefined };
       setOrig({ source, intent });
       await analyzeSource(source, intent);
+      recordCheck();   // count one completed check against the monthly free tier
     } catch (e) {
       setError(friendlyError(e, file.name));
       setStage('error');
@@ -271,7 +337,8 @@ export default function App() {
       {status && <div style={{ padding: '9px 20px', background: '#EAF3EE', borderBottom: '1px solid #CFE3D7',
         fontFamily: FONT, fontSize: 12, color: '#1E5B3E' }}>{status}</div>}
 
-      {stage === 'intake' ? <Intake onAnalyze={handleAnalyze} v2={USE_V2} shop={SHOP} />
+      {stage === 'intake' ? <><MeterBar /><Intake onAnalyze={handleAnalyze} v2={USE_V2} shop={SHOP} /></>
+        : stage === 'limit' ? <LimitGate onBack={reset} />
         : stage === 'analyzing' ? <Panel title="Checking your file…" body="One moment." />
         : stage === 'error' ? <Panel title="Couldn't read that file" body={error} />
         : <ResultView {...job.view} onFix={onFix} onReset={reset} previews={job.previews} fits={job.fits}
