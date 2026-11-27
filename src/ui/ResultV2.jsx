@@ -131,7 +131,14 @@ export default function ResultV2({ job, verdict, headline, sub, primary, rows, o
 
           <div className={s.previewWrap}>
             <p className={s.pvLabel}>Preview</p>
-            {hasPreview ? previews.slice(0, 2).map((src, i) => (
+            {/* Wrong-shape file: the main preview mirrors the selected fit mode so
+                you can see what each one actually does to the artwork. */}
+            {needsFit && fits[fitMode] ? (
+              <div className={s.preview}>
+                <img src={fits[fitMode]} alt={`Fit: ${FIT_META.find(([k]) => k === fitMode)?.[1] || fitMode}`} />
+                <div className={s.pvFoot}><span className={s.n}>{FIT_META.find(([k]) => k === fitMode)?.[1] || 'Preview'}</span><span className={s.s}>+ crop marks</span></div>
+              </div>
+            ) : hasPreview ? previews.slice(0, 2).map((src, i) => (
               <div key={i} className={s.preview}>
                 <img src={src} alt={`Page ${i + 1}`} />
                 <div className={s.pvFoot}><span className={s.n}>Page {i + 1}{previews.length > 1 ? ` of ${previews.length}` : ''}</span><span className={s.s}>+ crop marks</span></div>

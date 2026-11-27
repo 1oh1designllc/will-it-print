@@ -178,7 +178,9 @@ export default function App() {
       if (imgs.length) {
         const previews = imgs.map((im) => makeThumb(im)).filter(Boolean);
         const wrongShape = view.rows.some((r) => r.chooseFit);
-        const fits = wrongShape ? makeFitOptions(imgs[0], intent.trimSize.width, intent.trimSize.height) : null;
+        // Larger render (560px) so the fit option also reads crisply when it
+        // drives the main preview, not just the small radio thumbnails.
+        const fits = wrongShape ? makeFitOptions(imgs[0], intent.trimSize.width, intent.trimSize.height, 560) : null;
         setJob((j) => (j && j.source === source ? { ...j, previews, fits } : j));
       }
     } catch { /* no preview */ }
