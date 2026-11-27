@@ -61,6 +61,16 @@
   .foot{ margin-top:38px; padding-top:18px; border-top:2px solid var(--hair); font-size:12.5px; color:var(--graphite); }
   .foot a{ color:var(--graphite); }
   @media (max-width:620px){ .steps{ grid-template-columns:1fr; } }
+  /* Context carried over from the preflight check */
+  .carried{ background:#fff; border:2px solid var(--ink); border-left:6px solid var(--c);
+    padding:14px 16px; margin:0 0 26px; }
+  .carriedT{ font-size:11.5px; font-weight:800; letter-spacing:.08em; text-transform:uppercase;
+    color:var(--graphite); margin:0 0 4px; }
+  .carriedBody{ font-size:15px; font-weight:700; color:var(--ink); margin:0; word-break:break-word; }
+  /* Pre-filled "email my file" action inside step 2 */
+  .emailCta{ display:inline-block; margin-top:10px; font-weight:800; font-size:14px; color:#fff;
+    background:var(--ink); text-decoration:none; padding:10px 16px; }
+  .emailCta:hover{ background:#000; }
 </style>
 </head>
 <body>
@@ -69,6 +79,12 @@
 
     <h1>Fix my file.</h1>
     <p class="sub">Send it over and I'll make it <b>press-ready</b> — bleed, CMYK, resolution, crop marks, and sizing handled — then hand back a print-ready PDF. Done by a designer with <b>20+ years in real print production</b>, not a bot.</p>
+
+    <!-- Filled in from the preflight result's URL params (file / size / issues). -->
+    <div id="carried" class="carried" style="display:none;">
+      <p class="carriedT">Carried over from your check</p>
+      <p id="carriedBody" class="carriedBody"></p>
+    </div>
 
     <div class="offer">
       <span class="tag">Most popular</span>
@@ -96,7 +112,8 @@
       <div class="step">
         <div class="stepNum">2</div>
         <p class="stepT">Send your file</p>
-        <p class="stepB">Email your artwork + the size/qty you're printing to info@1oh1designllc.com.</p>
+        <p class="stepB">Email your artwork to info@1oh1designllc.com. The button below pre-fills everything from your check — just attach your file and send.</p>
+        <a id="emailBtn" class="emailCta" href="mailto:info@1oh1designllc.com">Email my file →</a>
       </div>
       <div class="step">
         <div class="stepNum">3</div>
@@ -132,12 +149,44 @@
     var FIX_PAY_LINK = "https://buy.stripe.com/fZu28s5q84mJ44y1jk2Nq00";
 
     (function () {
+      // ── Context carried from the preflight result (file / size / issues) ──
+      // The file stays in the customer's browser by design; we carry the
+      // filename, size and flagged issues so the hand-off email writes itself.
+      var q = new URLSearchParams(location.search);
+      var file = q.get("file") || "", size = q.get("size") || "",
+          method = q.get("method") || "", qty = q.get("qty") || "",
+          issues = q.get("issues") || "";
+      var printing = [size, method, qty].filter(Boolean).join(", ");
+
+      // Show what came over (textContent only — never innerHTML the URL).
+      if (file || printing || issues) {
+        var parts = [];
+        if (file) parts.push(file);
+        if (printing) parts.push(printing);
+        if (issues) parts.push("Flagged: " + issues);
+        document.getElementById("carriedBody").textContent = parts.join("   ·   ");
+        document.getElementById("carried").style.display = "block";
+      }
+
+      // Build the pre-filled hand-off email (customer just attaches the file).
+      var subject = "Will It Print? — $49 fix" + (file ? ": " + file : "");
+      var body = "Hi, I'd like the $49 print-ready fix.\n\n"
+        + (file ? "File: " + file + "\n" : "")
+        + (printing ? "Printing at: " + printing + "\n" : "")
+        + (issues ? "Flagged in preflight: " + issues + "\n" : "")
+        + "\nMy file is attached.";
+      var mailto = "mailto:info@1oh1designllc.com?subject="
+        + encodeURIComponent(subject) + "&body=" + encodeURIComponent(body);
+      var email = document.getElementById("emailBtn");
+      if (email) email.href = mailto;
+
+      // ── Payment link ───────────────────────────────────────────────
       var btn = document.getElementById("payBtn");
       if (FIX_PAY_LINK) {
         btn.href = FIX_PAY_LINK;
         btn.textContent = "Pay $49 & start my fix →";
       } else {
-        btn.href = "mailto:info@1oh1designllc.com?subject=Will%20It%20Print%3F%20%E2%80%94%20%2449%20fix&body=Hi%2C%20I%27d%20like%20the%20%2449%20print-ready%20fix.%20My%20file%20is%20attached%2C%20and%20I%27m%20printing%20at%3A%20%5Bsize%20%2B%20quantity%5D.";
+        btn.href = mailto;
         btn.textContent = "Start my $49 fix →";
       }
     })();

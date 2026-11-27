@@ -88,6 +88,23 @@ export default function ResultV2({ job, verdict, headline, sub, primary, rows, o
   const orderNewTab = order.newTab;
   const onOrderClick = () => countOrderClick(orderCfg.beacon, shop ? shop.id : 'public');
   const showPrint = (orderCfg.url || orderCfg.email) && (verdict === 'ready' || verdict === 'fixable');
+  // Carry the verdict context to the fix page so its hand-off email can be
+  // pre-filled. The file itself stays in the browser (client-side by design) —
+  // the customer attaches it — but the filename, size, method and the list of
+  // issues all travel across so nothing has to be re-typed.
+  const fixHref = (() => {
+    try {
+      const issues = rows.filter((r) => r.status === 'fail' || r.status === 'warn').map((r) => r.label);
+      const p = new URLSearchParams();
+      if (job.file) p.set('file', job.file);
+      if (job.size) p.set('size', job.size);
+      if (job.method) p.set('method', job.method);
+      if (job.qty) p.set('qty', job.qty);
+      if (issues.length) p.set('issues', issues.join(', '));
+      const q = p.toString();
+      return q ? `${ONE_OH_ONE_CONTACT}?${q}` : ONE_OH_ONE_CONTACT;
+    } catch { return ONE_OH_ONE_CONTACT; }
+  })();
 
   return (
     <main className={s.v2} style={{ '--tone': tone }}>
@@ -189,7 +206,7 @@ export default function ResultV2({ job, verdict, headline, sub, primary, rows, o
               <div className={s.lead}>
                 <span><b>{verdict === 'ready' ? 'Looks print-ready.' : 'Want a pro set of eyes?'}</b><br />
                   <span>{verdict === 'ready' ? 'Need your next piece designed right the first time?' : '1Oh1 Design can fix the file and hand it back press-ready.'}</span></span>
-                <a className={s.leadBtn} href={ONE_OH_ONE_CONTACT}>{verdict === 'ready' ? 'Work with 1Oh1' : 'Have 1Oh1 fix it'}</a>
+                <a className={s.leadBtn} href={fixHref}>{verdict === 'ready' ? 'Work with 1Oh1' : 'Have 1Oh1 fix it'}</a>
               </div>
               <EmailCapture job={job} verdict={verdict} />
               <div className={s.supportRow}>
