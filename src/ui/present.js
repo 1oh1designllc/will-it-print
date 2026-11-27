@@ -72,16 +72,19 @@ const P = {
     if (f.status === 'pass') {
       if (d.known === false) return { msg: 'No fonts to check.', why: 'An image file has no live text to embed.', data: null };
       if (d.count === 0) return { msg: 'No text fonts to embed.', why: 'Nothing here can go missing on the press.', data: null };
+      if (d.standardMissing) {
+        const names = d.standardMissing.join(', ');
+        const one = d.standardMissing.length === 1;
+        return { msg: 'Fonts are safe (standard fonts not embedded).', why: `${names} ${one ? 'is a standard font' : 'are standard fonts'} every press carries, so ${one ? 'it' : 'they'} won’t go missing — embedding removes all doubt, but it’s not required.`, data: `Relies on the press: ${names}` };
+      }
       return { msg: 'All fonts are embedded.', why: 'The press has every font the file needs — text prints exactly as drawn.', data: `${d.count} font${d.count === 1 ? '' : 's'} embedded` };
     }
-    // warn
+    // fail — a custom font isn't embedded (a hard stop)
     const names = (d.missing || []).join(', ');
-    const custom = d.custom > 0;
+    const one = (d.missing || []).length === 1;
     return {
-      msg: custom ? 'A font isn’t embedded — text may substitute or shift.' : 'Fonts aren’t embedded (standard fonts).',
-      why: custom
-        ? `${names} ${ (d.missing || []).length === 1 ? 'isn’t' : 'aren’t'} carried in the file, so the press swaps in another font and your text can look different or reflow.`
-        : `${names} ${ (d.missing || []).length === 1 ? 'is a standard font' : 'are standard fonts'} most presses have, but embedding removes all doubt.`,
+      msg: one ? 'A custom font isn’t embedded — this needs fixing.' : 'Custom fonts aren’t embedded — this needs fixing.',
+      why: `${names} ${one ? 'isn’t' : 'aren’t'} carried in the file and the press won’t have ${one ? 'it' : 'them'}, so your text can reflow or print in a different typeface. We can’t embed a font we don’t have.`,
       data: `Not embedded: ${names}`,
       guidance: 'Re-export with “embed all fonts” turned on (or outline the text), then re-check.',
     };

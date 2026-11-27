@@ -24,10 +24,20 @@ let f = first(docOf([{ name: 'Gotham', embedded: true, standard: false }, { name
 check('all embedded -> pass', f.status === 'pass', f.status);
 
 f = first(docOf([{ name: 'Gotham-Bold', embedded: false, standard: false }]));
-check('custom not embedded -> warn (custom=1)', f.status === 'warn' && f.detail.custom === 1, `${f.status} custom=${f.detail.custom}`);
+check('custom not embedded -> fail, unfixable (custom=1)', f.status === 'fail' && f.fixable === false && f.detail.custom === 1, `${f.status} fixable=${f.fixable} custom=${f.detail.custom}`);
+
+// a custom miss hard-stops even when a standard font is also missing
+f = first(docOf([{ name: 'Gotham-Bold', embedded: false, standard: false }, { name: 'Helvetica', embedded: false, standard: true }]));
+check('custom + standard missing -> fail', f.status === 'fail' && f.detail.custom === 1, `${f.status} custom=${f.detail.custom}`);
 
 f = first(docOf([{ name: 'Helvetica', embedded: false, standard: true }]));
-check('standard not embedded -> warn (custom=0)', f.status === 'warn' && f.detail.custom === 0, `${f.status} custom=${f.detail.custom}`);
+check('only standard not embedded -> pass (safe)', f.status === 'pass' && (f.detail.standardMissing || []).length === 1, `${f.status} std=${JSON.stringify(f.detail.standardMissing)}`);
+
+// full verdict: a custom unembedded font rolls the headline to needs-attention
+{
+  const v = runChecks(docOf([{ name: 'Gotham-Bold', embedded: false, standard: false }]), RS, [fontChecker]).verdict;
+  check('custom missing -> verdict needs-attention', v === 'needs-attention', v);
+}
 
 f = first(docOf([]));
 check('no text fonts -> pass', f.status === 'pass' && f.detail.count === 0, f.status);
@@ -44,9 +54,9 @@ const helvBytes = await pdf(async (d) => {
   page.drawText('Hello', { x: 20, y: 60, size: 12, font });
 });
 const fd1 = first(await parsePdf(helvBytes, 'helv.pdf', intent));
-check('adapter: Helvetica text -> warn, not embedded',
-  fd1.status === 'warn' && (fd1.detail.missing || []).some((n) => /Helvetica/.test(n)),
-  `${fd1.status} ${JSON.stringify(fd1.detail.missing || [])}`);
+check('adapter: Helvetica text -> pass (standard font, safe)',
+  fd1.status === 'pass' && (fd1.detail.standardMissing || []).some((n) => /Helvetica/.test(n)),
+  `${fd1.status} ${JSON.stringify(fd1.detail.standardMissing || [])}`);
 
 const blankBytes = await pdf(async (d) => { d.addPage([252, 144]); });
 const fd2 = first(await parsePdf(blankBytes, 'blank.pdf', intent));
