@@ -25,7 +25,7 @@ export const FREE_LIMIT = 3;
  * Blank = monetization dormant (count only, never block). Paste the
  * buy.stripe.com/... recurring link here to turn the wall on.
  */
-export const PRO_SUB_LINK = '';
+export const PRO_SUB_LINK = 'https://buy.stripe.com/4gM00kf0IcTfgRk1jk2Nq02';
 
 /**
  * Soft unlock token. Set the Stripe subscription's after-payment redirect to
